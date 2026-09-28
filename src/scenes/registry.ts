@@ -36,4 +36,8 @@ export const SCENES: Partial<Record<string, SceneEntry>> = {
     Scene: lazy(() => import('./Tunneling/Scene')),
     Controls: lazy(() => import('./Tunneling/Controls')),
   },
+  entanglement: {
+    Scene: lazy(() => import('./Entanglement/Scene')),
+    Controls: lazy(() => import('./Entanglement/Controls')),
+  },
 };

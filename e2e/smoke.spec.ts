@@ -194,3 +194,33 @@ test('tunneling: a full run ends with measured transmission matching the quantum
   expect(Number(measured)).toBeGreaterThan(1);
   expect(errors).toEqual([]);
 });
+
+test('entanglement: Bell counter shows the quantum match rate below the classical minimum', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#entanglement');
+  const group = page.getByRole('group', { name: 'Entanglement controls' });
+  await group.getByRole('slider', { name: 'Pairs per second' }).fill('100');
+  const counter = group.getByRole('status', { name: 'Bell test counter' });
+  // ≥ 2000 pairs: the quantum/classical gap (0.056) is then ≈ 3.5 standard errors.
+  await expect
+    .poll(
+      async () =>
+        Number((await counter.textContent())!.match(/([\d,]+) pairs measured/)![1].replace(/,/g, '')),
+      {
+        timeout: 70_000,
+      },
+    )
+    .toBeGreaterThanOrEqual(2000);
+  const text = (await counter.textContent())!;
+  const [, q] = text.match(/entangled pairs([\d.]+) ±/)!;
+  const [, c] = text.match(/hidden-instruction model([\d.]+) ±/)!;
+  expect(Number(q)).toBeLessThan(Number(c));
+  await group.getByRole('radio', { name: /CHSH/ }).click();
+  await expect(counter).toContainText('|S| — entangled pairs');
+  await expect(group.getByRole('img', { name: /Correlation between Alice/ })).toBeVisible();
+  expect(errors).toEqual([]);
+});

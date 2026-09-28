@@ -1,4 +1,5 @@
 import { doubleSlit } from './doubleSlit';
+import { entanglement } from './entanglement';
 import { orbitals } from './orbitals';
 import { superposition } from './superposition';
 import { tunneling } from './tunneling';
@@ -14,4 +15,5 @@ export const CONTENT: Partial<Record<string, SectionContent>> = {
   orbitals,
   uncertainty,
   tunneling,
+  entanglement,
 };

@@ -106,3 +106,8 @@ Each item is also marked `APPROX:` or explained inline in the code.
 16. **Energy-diagram overlay.** In the tunnelling scene the wave is drawn with its axis at its
     mean energy E, over the potential. Amplitude and energy share the vertical direction but not
     units; this is a standard textbook convention.
+17. **Idealized Bell test.** Detectors are perfect, with no losses, noise or detection loophole,
+    and settings are drawn from a PRNG. The comparison "hidden instructions" model is one
+    specific local model (a shared random angle). Bell's theorem, not the simulation, is what
+    shows that _every_ local model obeys the same limits. Detector rings face the viewer; real
+    measurement directions are perpendicular to the flight path.
