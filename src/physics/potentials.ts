@@ -92,12 +92,20 @@ export function addSlitMask(grid: Grid2D, mask: SlitMask, w: Float64Array): void
   }
 }
 
-/** Rectangular barrier V0 on [center − width/2, center + width/2]. */
+/**
+ * Rectangular barrier V₀ on [center − width/2, center + width/2]. Each grid cell gets V₀
+ * times the fraction of the cell [x − Δx/2, x + Δx/2] the barrier covers, so the
+ * barrier's integrated strength and effective width match `width` exactly instead of
+ * snapping to a whole number of cells.
+ */
 export function rectBarrier(grid: Grid1D, center: number, width: number, v0: number): Float64Array {
   const v = new Float64Array(grid.n);
+  const lo = center - width / 2;
+  const hi = center + width / 2;
   for (let i = 0; i < grid.n; i++) {
     const x = grid.x0 + i * grid.dx;
-    if (Math.abs(x - center) <= width / 2) v[i] = v0;
+    const overlap = Math.min(hi, x + grid.dx / 2) - Math.max(lo, x - grid.dx / 2);
+    if (overlap > 0) v[i] = (v0 * overlap) / grid.dx;
   }
   return v;
 }
