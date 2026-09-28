@@ -224,3 +224,28 @@ test('entanglement: Bell counter shows the quantum match rate below the classica
   await expect(group.getByRole('img', { name: /Correlation between Alice/ })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('applications: four vignettes; Grover search amplifies the marked item to 94.5 %', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#applications');
+  const group = page.getByRole('group', { name: 'Applications controls' });
+  await expect(group.getByRole('status').filter({ hasText: 'Tunnelling probability' })).toBeVisible();
+  await group.getByRole('radio', { name: 'MRI' }).click();
+  await group.getByRole('slider', { name: 'Magnetic field' }).fill('3');
+  await expect(group).toContainText('127.7 MHz');
+  await group.getByRole('radio', { name: 'Lasers' }).click();
+  await expect(group).toContainText('1.96 eV');
+  await group.getByRole('radio', { name: 'Quantum computers' }).click();
+  const readout = group.getByRole('status', { name: 'Quantum register readout' });
+  await group.getByRole('button', { name: 'Apply Hadamard to all qubits' }).click();
+  await expect(readout).toContainText('12.5%');
+  for (let k = 0; k < 2; k++) {
+    await group.getByRole('button', { name: 'Apply the oracle' }).click();
+    await group.getByRole('button', { name: 'Apply the diffusion step' }).click();
+  }
+  await expect(readout).toContainText('94.5% after 2 Grover rounds (theory 94.5%)');
+  await group.getByRole('button', { name: 'Measure the qubits' }).click();
+  await expect(readout).toContainText('Measured: |');
+  expect(errors).toEqual([]);
+});

@@ -1,3 +1,4 @@
+import { applications } from './applications';
 import { doubleSlit } from './doubleSlit';
 import { entanglement } from './entanglement';
 import { orbitals } from './orbitals';
@@ -16,4 +17,5 @@ export const CONTENT: Partial<Record<string, SectionContent>> = {
   uncertainty,
   tunneling,
   entanglement,
+  applications,
 };
