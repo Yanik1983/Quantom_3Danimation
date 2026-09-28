@@ -25,6 +25,16 @@ Playwright uses Chromium; set `PW_CHROMIUM` to a local Chromium binary if it is 
 URL flags: `?debug` shows an fps / draw-call overlay; `?fx=0` disables post-processing; `?sky=0`
 disables the backdrop. Deep links: `/#double-slit`, `/#orbitals`, … jump straight to a section.
 
+## Deploying (GitHub Pages)
+
+`.github/workflows/deploy-pages.yml` typechecks, lints and tests, then builds with
+`BASE_PATH=/<repo>/` and publishes `dist/` to GitHub Pages on every push to the default branch
+(or on demand from the Actions tab). One-time setup: **Settings → Pages → Build and deployment →
+Source: GitHub Actions**. Pages on a private repository requires a paid GitHub plan; otherwise make
+the repository public. The site is then served at `https://<owner>.github.io/<repo>/`.
+
+For any other static host, `npm run build` (base `/`) or `BASE_PATH=/sub/path/ npm run build`.
+
 ## The eight stations
 
 | #   | Section       | Simulation                                                                          | Key test targets                                                             |
