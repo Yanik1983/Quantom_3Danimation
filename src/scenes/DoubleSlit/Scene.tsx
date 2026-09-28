@@ -189,11 +189,9 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     [data, capacity, tier],
   );
 
-  const segs = tier === 'low' ? [90, 110] : tier === 'medium' ? [150, 180] : [200, 240];
-  const waveGeo = useMemo(
-    () => new PlaneGeometry(PLANE_WIDTH, PLANE_DEPTH, segs[0], segs[1]),
-    [segs[0], segs[1]],
-  ); // eslint-disable-line react-hooks/exhaustive-deps
+  const segW = tier === 'low' ? 90 : tier === 'medium' ? 150 : 200;
+  const segD = tier === 'low' ? 110 : tier === 'medium' ? 180 : 240;
+  const waveGeo = useMemo(() => new PlaneGeometry(PLANE_WIDTH, PLANE_DEPTH, segW, segD), [segW, segD]);
   const waveMat = useMemo(
     () =>
       new ShaderMaterial({
