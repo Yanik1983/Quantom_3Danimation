@@ -175,3 +175,22 @@ test('uncertainty: Gaussians saturate ℏ/2, squeezing trades Δx for Δp, other
   await expect(readout).toContainText('minimum-uncertainty state');
   expect(errors).toEqual([]);
 });
+
+test('tunneling: a full run ends with measured transmission matching the quantum prediction', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#tunneling');
+  const group = page.getByRole('group', { name: 'Tunneling controls' });
+  await group.getByRole('switch', { name: 'Auto-repeat' }).click();
+  const readout = group.getByRole('status', { name: 'Transmission readout' });
+  await expect(readout).toContainText(/Classical: \d/);
+  await expect(readout).toContainText('Final:', { timeout: 100_000 });
+  const text = (await readout.textContent())!;
+  const [, measured, predicted] = text.match(/Final: measured ([\d.]+)% vs predicted ([\d.]+)%/)!;
+  expect(Math.abs(Number(measured) - Number(predicted))).toBeLessThan(1);
+  expect(Number(measured)).toBeGreaterThan(1);
+  expect(errors).toEqual([]);
+});

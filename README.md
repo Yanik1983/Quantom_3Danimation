@@ -99,3 +99,10 @@ Each item is also marked `APPROX:` or explained inline in the code.
     |ψ|² and is rescaled so that 95% of its probability fills the same volume. Readouts give the
     true size (⟨r⟩ and r₉₅ in Bohr radii). The nucleus marker is drawn vastly larger than a real
     proton (≈10⁻⁵ of the atom).
+15. **Tunnelling setup.** The barrier is an ideal rectangle, discretized with fractional edge
+    cells so its width is exact. The packet width is fixed (σ = 4, momentum spread ℏ/8), so the
+    packet's transmission is close to, but not identical with, the plane-wave T(E). Both are
+    shown.
+16. **Energy-diagram overlay.** In the tunnelling scene the wave is drawn with its axis at its
+    mean energy E, over the potential. Amplitude and energy share the vertical direction but not
+    units; this is a standard textbook convention.

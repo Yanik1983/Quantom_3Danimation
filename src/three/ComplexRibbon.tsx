@@ -9,8 +9,8 @@ import {
   LineBasicMaterial,
   MeshBasicMaterial,
 } from 'three';
-import { useDisposable } from '../../hooks/useDisposable';
-import { phaseColor } from '../../lib/colors';
+import { useDisposable } from '../hooks/useDisposable';
+import { phaseColor } from '../lib/colors';
 
 export interface RibbonHandle {
   /**

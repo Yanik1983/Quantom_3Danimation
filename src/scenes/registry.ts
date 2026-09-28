@@ -32,4 +32,8 @@ export const SCENES: Partial<Record<string, SceneEntry>> = {
     Scene: lazy(() => import('./Uncertainty/Scene')),
     Controls: lazy(() => import('./Uncertainty/Controls')),
   },
+  tunneling: {
+    Scene: lazy(() => import('./Tunneling/Scene')),
+    Controls: lazy(() => import('./Tunneling/Controls')),
+  },
 };

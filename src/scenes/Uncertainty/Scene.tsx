@@ -4,7 +4,7 @@ import { BoxGeometry, Color, Group, MeshBasicMaterial } from 'three';
 import { useDisposable } from '../../hooks/useDisposable';
 import type { SceneProps } from '../registry';
 import { analyse, XS } from './analysis';
-import { ComplexRibbon, type RibbonHandle } from './ComplexRibbon';
+import { ComplexRibbon, type RibbonHandle } from '../../three/ComplexRibbon';
 import { packetOf, useUncertainty } from './store';
 
 /** Both panels show ±8 units (position in length units, momentum in ℏ/length). */
