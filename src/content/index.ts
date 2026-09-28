@@ -1,4 +1,5 @@
 import { doubleSlit } from './doubleSlit';
+import { superposition } from './superposition';
 import { wavefunction } from './wavefunction';
 import type { SectionContent } from './types';
 
@@ -6,4 +7,5 @@ import type { SectionContent } from './types';
 export const CONTENT: Partial<Record<string, SectionContent>> = {
   'double-slit': doubleSlit,
   wavefunction,
+  superposition,
 };

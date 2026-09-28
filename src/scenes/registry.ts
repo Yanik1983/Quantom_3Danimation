@@ -20,4 +20,8 @@ export const SCENES: Partial<Record<string, SceneEntry>> = {
     Scene: lazy(() => import('./Wavefunction/Scene')),
     Controls: lazy(() => import('./Wavefunction/Controls')),
   },
+  superposition: {
+    Scene: lazy(() => import('./Superposition/Scene')),
+    Controls: lazy(() => import('./Superposition/Controls')),
+  },
 };

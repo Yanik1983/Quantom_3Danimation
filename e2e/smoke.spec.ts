@@ -98,3 +98,29 @@ test('wavefunction: ψ stays normalized, phase edits and time evolution work', a
   await expect(group.getByRole('radio', { name: 'Packet C' })).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+test('superposition: measurement collapses, repeats agree, tallies follow the Born rule', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#superposition');
+  const group = page.getByRole('group', { name: 'Superposition controls' });
+  await expect(group.getByRole('status', { name: 'Qubit state' })).toContainText('75.0%');
+  await group.getByRole('button', { name: 'Measure', exact: true }).click();
+  const result = group.getByText(/^Result: \|[01]⟩/);
+  await expect(result).toBeVisible();
+  const first = await result.textContent();
+  for (let i = 0; i < 5; i++) {
+    await group.getByRole('button', { name: 'Measure', exact: true }).click();
+    await expect(result).toHaveText(first!);
+  }
+  await group.getByRole('button', { name: 'Measure 100 freshly prepared copies' }).click();
+  const tally = group.getByText(/Tally for fresh copies/);
+  await expect(tally).toContainText('Born rule: 75.0%');
+  const counts = (await tally.textContent())!.match(/\|0⟩ (\d+) · \|1⟩ (\d+)/)!;
+  expect(Number(counts[1]) + Number(counts[2])).toBe(101);
+  await group.getByRole('radio', { name: /^X/ }).click();
+  await expect(tally).toContainText('|+⟩ 0 · |−⟩ 0');
+  expect(errors).toEqual([]);
+});
