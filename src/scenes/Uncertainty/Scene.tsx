@@ -122,7 +122,7 @@ export default function UncertaintyScene(_props: SceneProps) {
       <Html position={[-PANEL_W / 2 - 0.2, 0.55, 0]} zIndexRange={[5, 0]}>
         <span
           aria-hidden="true"
-          className="pointer-events-none font-mono text-xs whitespace-nowrap text-violet select-none"
+          className="pointer-events-none font-mono text-xs whitespace-nowrap text-violet-ink select-none"
         >
           ⇅ Fourier transform
         </span>

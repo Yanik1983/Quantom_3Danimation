@@ -164,7 +164,7 @@ export default function TunnelingScene({ active }: SceneProps) {
         </Html>
       </group>
       <Html position={[0, V0 * ES + 0.35, 0]} center zIndexRange={[5, 0]}>
-        <span aria-hidden="true" className={`${label} text-violet`}>
+        <span aria-hidden="true" className={`${label} text-violet-ink`}>
           V₀
         </span>
       </Html>

@@ -205,7 +205,7 @@ export default function EntanglementScene({ active }: SceneProps) {
       <Html position={[0, -0.75, 0]} center zIndexRange={[5, 0]}>
         <span
           aria-hidden="true"
-          className="pointer-events-none font-mono text-xs whitespace-nowrap text-violet select-none"
+          className="pointer-events-none font-mono text-xs whitespace-nowrap text-violet-ink select-none"
         >
           entangled-pair source
         </span>

@@ -54,7 +54,7 @@ export function App() {
           <Section key={meta.id} meta={meta} index={i} />
         ))}
       </main>
-      <footer className="relative z-10 px-4 pb-10 text-center text-xs text-slate-500 md:px-8">
+      <footer className="relative z-10 px-4 pb-10 text-center text-xs text-slate-400 md:px-8">
         Simulations use real quantum mechanics: split-step Fourier Schrödinger solvers, hydrogen
         eigenfunctions and Born-rule sampling. See “Under the hood” in each section.
       </footer>

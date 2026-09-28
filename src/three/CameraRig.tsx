@@ -14,10 +14,20 @@ const nextPos = new Vector3();
 const nextLook = new Vector3();
 const prevPos = new Vector3();
 
+/**
+ * Camera distance multiplier: stations are framed for landscape screens; in portrait the
+ * horizontal field of view shrinks, so the camera backs off to keep each scene in frame.
+ */
+let distanceScale = 1;
+
 function stationPose(i: number, pos: Vector3, look: Vector3): void {
   const s = STATIONS[i];
-  pos.set(s.center[0] + s.camera[0], s.center[1] + s.camera[1], s.center[2] + s.camera[2]);
   look.set(s.center[0] + s.look[0], s.center[1] + s.look[1], s.center[2] + s.look[2]);
+  pos.set(
+    look.x + (s.camera[0] - s.look[0]) * distanceScale,
+    look.y + (s.camera[1] - s.look[1]) * distanceScale,
+    look.z + (s.camera[2] - s.look[2]) * distanceScale,
+  );
 }
 
 /**
@@ -33,6 +43,8 @@ function useFramingOffset(): void {
     if (width >= 1024) dx = Math.min(300, width * 0.2);
     else if (width >= 700) dx = width * 0.2;
     else dy = height * 0.2;
+    const aspect = width / height;
+    distanceScale = aspect < 1 ? Math.min(2.1, 0.9 / aspect) : aspect < 1.25 ? 1.15 : 1;
     camera.setViewOffset(width, height, -dx, dy, width, height);
     camera.updateProjectionMatrix();
   }, [camera, width, height]);

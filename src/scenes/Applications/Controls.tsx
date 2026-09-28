@@ -23,7 +23,7 @@ function BuildsOn({ items }: { items: { label: string; station: number }[] }) {
           key={it.label}
           type="button"
           onClick={() => jumpToStation(it.station)}
-          className="rounded-full border border-violet/40 px-2 py-0.5 text-violet hover:border-violet hover:text-white"
+          className="rounded-full border border-violet/40 px-2 py-0.5 text-violet-ink hover:border-violet hover:text-white"
         >
           {it.label}
         </button>
@@ -66,7 +66,7 @@ function TransistorPanel() {
         <br />
         {s.oxide < 2 ? `${sci(T / T20)}× the leakage at 2 nm` : `${sci(T20 / T)}× less leakage than at 2 nm`}
         <br />
-        <span className="text-slate-500">
+        <span className="text-slate-400">
           Barrier 3.1 eV (Si/SiO₂), electron energy 1 eV. Animation leak rate on a log scale.
         </span>
       </p>
@@ -103,7 +103,7 @@ function MriPanel() {
           Larmor frequency: <span className="text-white">{larmorMHz(s.field).toFixed(1)} MHz</span>
         </p>
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-400">
         Precession slowed about 10⁸× and relaxation shortened for display.
       </p>
       <BuildsOn items={[{ label: '03 Superposition', station: 3 }]} />

@@ -4,6 +4,8 @@
   --color-void: #05060a;
   --color-cyan: #22e4ff;
   --color-violet: #8b5cf6;
+  /* Lighter violet for text: ≥ 4.5:1 on the card surfaces (the accent is for marks). */
+  --color-violet-ink: #a78bfa;
   --color-magenta: #ff3dbb;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Space Grotesk Variable', 'Inter Variable', ui-sans-serif, sans-serif;
