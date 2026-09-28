@@ -1,6 +1,21 @@
 # PLAN — Interactive 3D Quantum Physics Explainer
 
-Status: **proposal, awaiting approval.** Nothing is implemented yet.
+Status: **implemented** (steps 0–10). This document is kept as the original plan; the deviations below record what
+changed during the build and why.
+
+### Deviations from the plan
+
+- **Double slit:** a tall real-potential wall leaked under split-step (V·Δt ≫ 1 is under-resolved), so the mask is a
+  complex absorber. Only the upper-slit wave is simulated and the lower one is its mirror image; this is validated
+  against a direct two-slit run. The geometry favours crisp fringes. With which-path detection this gives one smooth
+  band rather than the "two bands" in the brief (separated bands need a near-field geometry, where fringes fade), so hits
+  are colour-coded by the recorded slit instead.
+- **Workers:** a typed `*Protocol.ts` per worker instead of one generic `rpc.ts`.
+- **Uncertainty / tunnelling** share a `ComplexRibbon` renderer; uncertainty runs on the main thread (a 0.2 ms FFT per
+  edit) because it is not heavy.
+- **Entanglement:** both the Mermin (3-setting) and CHSH forms, side by side with a local hidden-variable model.
+- **Applications:** one interactive vignette at a time (transistor, MRI, laser, 3-qubit Grover search).
+- **Added:** an axe accessibility audit in e2e, portrait-aware camera framing, and vendor chunk splitting.
 
 ---
 

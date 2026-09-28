@@ -15,12 +15,54 @@ npm run dev        # http://localhost:5173
 npm run typecheck
 npm run lint
 npm test           # physics + engine unit tests (Vitest)
-npm run e2e        # production build + headless Chromium smoke tests (Playwright)
-npm run build      # static site in dist/
+npm run e2e        # production build + Playwright: per-scene behaviour + axe accessibility audit
+npm run build      # static site in dist/ (deploy to any static host)
 ```
 
+Playwright uses Chromium; set `PW_CHROMIUM` to a local Chromium binary if it is not at
+`/opt/pw-browsers/chromium`.
+
 URL flags: `?debug` shows an fps / draw-call overlay; `?fx=0` disables post-processing; `?sky=0`
-disables the backdrop.
+disables the backdrop. Deep links: `/#double-slit`, `/#orbitals`, … jump straight to a section.
+
+## The eight stations
+
+| #   | Section       | Simulation                                                                          | Key test targets                                                             |
+| --- | ------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1   | Double slit   | 2D split-step TDSE (256×128) in a worker; Born-sampled hits; which-path decoherence | fringe positions vs path difference, superposition vs direct run, visibility |
+| 2   | Wavefunction  | Editable ψ(x,y) from Gaussian packets; live 2D evolution (harmonic / free)          | coherent-state oscillation, squeezed breathing, ⟨E⟩ conservation             |
+| 3   | Superposition | Bloch sphere, Z/X/Y projective measurement                                          | P± = ½(1 ± r·n), 4σ sampling, repeatability                                  |
+| 4   | Orbitals      | Exact hydrogen ψ_nlm point clouds + cross-sections                                  | Y_lm orthonormality, ⟨r⟩, ⟨1/r⟩ → E_n, nodes, radial equation                |
+| 5   | Uncertainty   | FFT-linked ψ(x) ⇄ φ(p)                                                              | Δx·Δp = ½ for Gaussians, chirp formula, Parseval                             |
+| 6   | Tunneling     | 1D split-step scattering off a rectangular barrier                                  | analytic T(E), resonances, simulated T within 0.005                          |
+| 7   | Entanglement  | Singlet Bell tests (Mermin & CHSH) vs a hidden-variable model                       | E = −cos Δ, \|S\| = 2√2 vs ≤ 2, 1/2 vs 5/9                                   |
+| 8   | Applications  | Oxide tunnelling, Bloch-equation MRI, laser cascade, 3-qubit Grover                 | Larmor & photon energies, Grover sin²((2k+1)θ)                               |
+
+## Performance
+
+- Budgets: 60 fps on a 2020-era laptop, ≥ 30 fps on mid-range phones. Heavy numerics run in
+  workers; render loops allocate nothing (preallocated vectors, ring buffers, in-place buffer
+  updates with partial GPU uploads); particles are instanced or GPU points.
+- Only the active station ± 1 is mounted; every GPU resource is created through `useDisposable`
+  and freed on unmount. Deterministic simulation results (e.g. the double-slit solve) are cached
+  for the session.
+- Vendor code is split into long-lived chunks (three, R3F/postprocessing, KaTeX, GSAP); each
+  scene and its controls load on demand.
+- CI and the dev container render WebGL in software (SwiftShader), where frame rates are 10–100×
+  lower than on a GPU. Real-hardware frame rates should be checked with `?debug` on target
+  devices.
+
+## Accessibility
+
+Every 3D manipulation has an equivalent labelled DOM control (sliders, switches, buttons). The
+progress rail is keyboard navigable (arrow keys, Home/End). Each section has a text alternative
+for its visualization and a polite live region describing the simulation state. The Entanglement
+chart has focusable points and a data table. Colours meet WCAG AA contrast, which is checked by axe
+in the e2e suite. `prefers-reduced-motion` is honoured, with a manual override in Settings.
+
+**Known limitation:** on touch screens the canvas lets vertical swipes scroll the page, so
+dragging 3D handles (packet rings, the Bloch vector) works best with a mouse or pen. The same
+parameters are always available through the sliders.
 
 ## Architecture
 
