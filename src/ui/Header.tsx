@@ -9,7 +9,7 @@ export function Header() {
         onClick={() => jumpToStation(0)}
         className="pointer-events-auto flex items-center gap-2 rounded-full font-display text-sm font-semibold tracking-wide text-white"
       >
-        <img src="/favicon.svg" alt="" className="size-7" />
+        <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="size-7" />
         Quantum, up close
       </button>
       <div className="pointer-events-auto">
