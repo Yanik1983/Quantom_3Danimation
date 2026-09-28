@@ -53,3 +53,25 @@ test('settings expose quality, motion and explanation controls', async ({ page }
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
 });
+
+test('double slit: simulation completes, particles are detected, controls respond', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#double-slit');
+  const status = page
+    .getByRole('group', { name: 'Double-slit controls' })
+    .getByRole('status')
+    .filter({ hasText: 'Particles detected' });
+  await expect(status).toBeVisible({ timeout: 45_000 });
+  await page.getByRole('slider', { name: 'Emission rate' }).fill('100');
+  await expect
+    .poll(async () => Number((await status.textContent())?.replace(/\D/g, '') ?? 0), { timeout: 30_000 })
+    .toBeGreaterThan(20);
+  const measure = page.getByRole('switch', { name: 'Measure which slit' });
+  await measure.click();
+  await expect(measure).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('button', { name: 'Reset double-slit experiment to defaults' }).click();
+  await expect(measure).toHaveAttribute('aria-checked', 'false');
+  await page.screenshot({ path: 'test-results/double-slit.png' });
+  expect(errors).toEqual([]);
+});

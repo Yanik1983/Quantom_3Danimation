@@ -33,17 +33,18 @@ describe('double slit', () => {
 
   it('places bright fringes where the path difference is a whole number of wavelengths', () => {
     const peaks = findPeaks(interferenceFactor(r), 0.5).map(yAt);
-    const predicted = predictedMaxima(cfg, 2);
-    // Orders |m| ≤ 2 lie well inside the absorbing edge layers.
-    for (const y of predicted) {
-      const nearest = peaks.reduce((best, p) => (Math.abs(p - y) < Math.abs(best - y) ? p : best), Infinity);
-      expect(Math.abs(nearest - y)).toBeLessThan(0.35);
+    // Orders |m| ≤ 3 lie well inside the absorbing edge layers.
+    const predicted = predictedMaxima(cfg, 3);
+    expect(predicted.length).toBe(7);
+    for (const p of predicted) {
+      const nearest = peaks.reduce((best, q) => (Math.abs(q - p) < Math.abs(best - p) ? q : best), Infinity);
+      expect(Math.abs(nearest - p)).toBeLessThan(0.35);
     }
   });
 
-  it('shows high-contrast interference without which-path information and loses it with', () => {
+  it('shows high-contrast fringes without which-path information and none with it', () => {
     const mid = r.grid.ny / 2;
-    const w = Math.round(8 / r.grid.dy);
+    const w = Math.round(6 / r.grid.dy);
     expect(fringeVisibility(r.coherent, mid - w, mid + w)).toBeGreaterThan(0.9);
     expect(fringeVisibility(r.whichPath, mid - w, mid + w)).toBeLessThan(0.3);
   });
@@ -56,7 +57,7 @@ describe('double slit', () => {
   }, 60_000);
 
   it('blocks almost everything at the mask and reports sensible timings', () => {
-    // Two 0.8-wide slits in a ~4-wide beam: only a small fraction gets through each slit.
+    // A 1.2-wide slit in a beam with σ = 7.5 passes a few percent of the probability.
     expect(r.transmittedSingle).toBeGreaterThan(0.02);
     expect(r.transmittedSingle).toBeLessThan(0.15);
     expect(r.maskFraction).toBeGreaterThan(0);

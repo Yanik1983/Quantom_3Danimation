@@ -47,18 +47,27 @@ export const DEFAULT_DOUBLE_SLIT: DoubleSlitConfig = {
   ny: 128,
   lx: 40,
   ly: 36,
-  k0: 6,
+  k0: 8,
   dt: 0.02,
-  slitSeparation: 4.8,
-  slitWidth: 0.8,
+  slitSeparation: 6,
+  slitWidth: 1.2,
   maskX: -6,
   maskThickness: 0.8,
   screenX: 14,
   packetX0: -14,
   packetSx: 1.4,
-  packetSy: 4.2,
+  packetSy: 7.5,
   edgeLayer: 3.5,
 };
+
+/*
+ * Geometry choice (λ ≈ 0.79, d = 6, a = 1.2, D = 20): narrow slits spread each beam far
+ * wider than the slit separation, giving high-contrast fringes. The price, which is real
+ * physics, is that the two single-slit patterns overlap heavily, so an ideal which-path
+ * measurement yields one smooth band (P₁ + P₂) rather than two separated stripes. Two
+ * separated bands require a near-field geometry, where the fringes themselves lose
+ * contrast — high-contrast fringes and separated which-path bands exclude each other.
+ */
 
 /** Coarser grid for low-end devices (same physics, same geometry). */
 export const LOW_DOUBLE_SLIT: DoubleSlitConfig = { ...DEFAULT_DOUBLE_SLIT, dt: 0.03 };
@@ -196,7 +205,7 @@ export function runDoubleSlit(
     }
   }
   normalizePattern(coherent);
-  const transmittedSingle = normalizePattern(upper);
+  const transmittedSingle = normalizePattern(upper) * grid.dy;
   const whichPath = new Float64Array(grid.ny);
   for (let j = 0; j < grid.ny; j++) whichPath[j] = (upper[j] + upper[mirrorRow(j, grid.ny)]) / 2;
   return {

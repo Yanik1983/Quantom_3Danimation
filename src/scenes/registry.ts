@@ -1,4 +1,4 @@
-import type { ComponentType, LazyExoticComponent } from 'react';
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 
 export interface SceneProps {
   /** True while this is the station the viewer is at; neighbours are mounted but idle. */
@@ -10,5 +10,10 @@ export interface SceneEntry {
   Controls: LazyExoticComponent<ComponentType>;
 }
 
-/** Section id → lazily loaded 3D scene and DOM controls. Filled in one scene per build step. */
-export const SCENES: Partial<Record<string, SceneEntry>> = {};
+/** Section id → lazily loaded 3D scene and DOM controls. */
+export const SCENES: Partial<Record<string, SceneEntry>> = {
+  'double-slit': {
+    Scene: lazy(() => import('./DoubleSlit/Scene')),
+    Controls: lazy(() => import('./DoubleSlit/Controls')),
+  },
+};

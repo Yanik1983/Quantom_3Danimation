@@ -32,6 +32,7 @@ for (const s of stations.length ? stations : [0]) {
     const y = el.getBoundingClientRect().top + window.scrollY + (st === 0 ? 0 : el.offsetHeight * 0.02);
     window.scrollTo({ top: y, behavior: 'instant' });
   }, s);
+  if (process.env.EVAL) await page.evaluate(process.env.EVAL);
   await page.waitForTimeout(Number(process.env.WAIT ?? 3500));
   const perf = await page.evaluate(() => window.__quantumPerf);
   console.log(`station ${s}:`, JSON.stringify(perf));
