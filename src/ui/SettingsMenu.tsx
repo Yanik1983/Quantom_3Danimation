@@ -112,18 +112,9 @@ export function SettingsMenu() {
             onChange={s.setTierPref}
           />
           <RadioRow legend="Motion" value={s.motionPref} options={motionOptions} onChange={s.setMotionPref} />
-          <RadioRow
-            legend="Explanations"
-            value={s.explain}
-            options={[
-              { value: 'simple', label: 'Simple' },
-              { value: 'technical', label: 'Technical' },
-            ]}
-            onChange={s.setExplain}
-          />
           <p className="text-xs leading-relaxed text-slate-400">
-            Auto quality watches your frame rate and adjusts particle counts, simulation resolution and
-            effects. Reduced motion removes camera flights; simulations stay interactive.
+            Auto quality watches your frame rate and adjusts particle counts and effects. Reduced motion
+            replaces camera glides with cuts; experiments stay interactive.
           </p>
         </div>
       )}

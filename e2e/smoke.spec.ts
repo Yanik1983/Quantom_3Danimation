@@ -15,35 +15,163 @@ function collectErrors(page: Page): string[] {
   return errors;
 }
 
-test('boots, renders WebGL, and publishes frame stats', async ({ page }) => {
+const card = (page: Page) => page.getByRole('group', { name: 'Experiment controls' });
+const menu = (page: Page) => page.getByRole('navigation', { name: 'Experiments' });
+
+async function setRange(page: Page, label: string, value: number) {
+  await page.getByLabel(label).evaluate((el, v) => {
+    const input = el as HTMLInputElement;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, String(v));
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }, value);
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+});
+
+test('the lab boots, renders WebGL and offers four experiments', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
   await expect(page.locator('canvas').first()).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Quantum');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Quantum physics, simply explained');
+  await expect(page.getByText('Choose an experiment to begin.')).toBeVisible();
+  await expect(menu(page).getByRole('button')).toHaveText([
+    /What is quantum physics\?/,
+    /Superposition/,
+    /Qubits/,
+    /Entanglement/,
+  ]);
   await page.waitForFunction(() => !!window.__quantumPerf, undefined, { timeout: 20_000 });
   const perf = await page.evaluate(() => window.__quantumPerf!);
   console.log('perf', JSON.stringify(perf));
   expect(perf.calls).toBeGreaterThan(0);
-  await page.screenshot({ path: 'test-results/smoke.png' });
   expect(errors).toEqual([]);
 });
 
-test('progress rail navigates between sections', async ({ page }) => {
+test('open an experiment, step through, return to the lab, and see visited marks', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  const rail = page.getByRole('navigation', { name: 'Sections' });
-  await expect(rail.getByRole('button')).toHaveCount(8);
-  await rail.getByRole('button', { name: '4. Orbitals' }).click();
-  await expect(rail.getByRole('button', { name: '4. Orbitals' })).toHaveAttribute('aria-current', 'step');
-  await expect(page.getByRole('heading', { name: 'Why atoms have shapes' })).toBeInViewport();
-  // Keyboard: arrow down moves to the next section.
-  await page.keyboard.press('ArrowDown');
-  await expect(rail.getByRole('button', { name: '5. Uncertainty' })).toHaveAttribute('aria-current', 'step');
+  await menu(page)
+    .getByRole('button', { name: /Superposition/ })
+    .click();
+  await expect(page.getByRole('heading', { name: 'In two places at once' })).toBeFocused();
+  await expect(page).toHaveURL(/#superposition$/);
+  await expect(page.getByText('Experiment 2 of 4')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next experiment' }).click();
+  await expect(page.getByRole('heading', { name: 'The quantum bit' })).toBeVisible();
+  await page.getByRole('button', { name: 'Previous experiment' }).click();
+  await expect(page.getByRole('heading', { name: 'In two places at once' })).toBeVisible();
+
+  // The browser's Back button walks back through the experiments, then to the lab.
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'The quantum bit' })).toBeVisible();
+  await page.getByRole('button', { name: '← Back to lab' }).click();
+  await expect(menu(page)).toBeVisible();
+  await expect(menu(page).getByRole('button', { name: /Superposition/ })).toContainText('✓');
+  await expect(menu(page).getByRole('button', { name: /Qubits/ })).toContainText('✓');
+  await expect(menu(page).getByRole('button', { name: /Entanglement/ })).not.toContainText('✓');
   expect(errors).toEqual([]);
 });
 
-test('settings expose quality, motion and explanation controls', async ({ page }) => {
+test('finishing all four shows the closing line', async ({ page }) => {
+  await page.goto('/#basics');
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Next experiment' }).click();
+  await page.getByRole('button', { name: 'Finish and return to the lab' }).click();
+  await expect(page.getByText(/That's quantum physics: waves, mixes, qubits and links/)).toBeVisible();
+});
+
+test('learn more is closed by default and holds the equations', async ({ page }) => {
+  await page.goto('/#superposition');
+  const details = page.locator('details');
+  await expect(details).not.toHaveAttribute('open');
+  await expect(details.locator('.katex-display').first()).toBeHidden();
+  await page.getByText('Learn more').click();
+  await expect(details).toHaveAttribute('open');
+  await expect(details.locator('.katex-display').first()).toBeVisible();
+});
+
+test('basics: the simulation loads, particles land, the slits can be watched', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/#basics');
+  const fire = card(page).getByRole('button', { name: 'Fire particles' });
+  await expect(fire).toBeEnabled({ timeout: 60_000 });
+  await setRange(page, 'Zoom', 1);
+  await expect(card(page).locator('output')).toHaveText('0.1 nm: one atom');
+  await fire.click();
+  await expect(card(page).getByRole('button', { name: 'Stop firing' })).toBeVisible();
+  await expect(page.getByText(/\d+ particles have landed/)).not.toHaveText(/^0 /, { timeout: 30_000 });
+  const watch = card(page).getByRole('switch', { name: 'Watch the slits' });
+  await watch.click();
+  await expect(watch).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByText(/Detectors watch the slits/)).toBeAttached();
+  await page.screenshot({ path: 'test-results/basics.png' });
+  expect(errors).toEqual([]);
+});
+
+test('superposition: looking finds the particle in one box; 100 looks follow the odds', async ({ page }) => {
+  await page.goto('/#superposition');
+  await card(page).getByRole('button', { name: 'Look', exact: true }).click();
+  await expect(card(page).getByText(/Found in the (left|right) box/)).toBeVisible();
+
+  // All the odds on the right: every look must find it there.
+  await setRange(page, 'Left ↔ Right', 1);
+  await expect(card(page).locator('output')).toHaveText('0% left · 100% right');
+  await card(page).getByRole('button', { name: 'Look 100 times' }).click();
+  await expect(card(page).getByText('Left box: 0 · Right box: 100')).toBeVisible();
+
+  // An even mix: both boxes win sometimes (P(all 100 on one side) ≈ 1.6e-30).
+  await setRange(page, 'Left ↔ Right', 0.5);
+  await card(page).getByRole('button', { name: 'Look 100 times' }).click();
+  const text = await card(page)
+    .getByText(/Left box: \d+/)
+    .innerText();
+  const [left, right] = text.match(/\d+/g)!.map(Number);
+  expect(left + right).toBe(100);
+  expect(left).toBeGreaterThan(20);
+  expect(right).toBeGreaterThan(20);
+});
+
+test('qubits: more qubits double the possibilities; measuring gives a bit string', async ({ page }) => {
+  await page.goto('/#qubits');
+  await setRange(page, 'Number of qubits', 3);
+  await expect(card(page).locator('output').nth(1)).toHaveText('3 → 8 possibilities');
+  await expect(card(page).getByText('000 001 010 011 100 101 110 111')).toBeAttached();
+  await setRange(page, 'Mix of 0 and 1', 1);
+  await card(page).getByRole('button', { name: 'Measure' }).click();
+  await expect(card(page).getByText('Result:')).toContainText('111');
+  await setRange(page, 'Mix of 0 and 1', 0);
+  await card(page).getByRole('button', { name: 'Measure' }).click();
+  await expect(card(page).getByText('Result:')).toContainText('000');
+});
+
+test('entanglement: every pair gives opposite results', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/#entanglement');
+  await card(page).getByRole('button', { name: 'Measure a pair' }).click();
+  await expect(card(page).getByText(/Left: . (up|down) · Right: . (up|down)/)).toBeVisible({
+    timeout: 20_000,
+  });
+  await card(page).getByRole('button', { name: 'Measure 100 pairs' }).click();
+  await expect(card(page).getByText(/Opposite: 101 of 101/)).toBeVisible({ timeout: 60_000 });
+  expect(errors).toEqual([]);
+});
+
+test('phones: the lab shows large tiles and the card is a bottom sheet', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const tile = menu(page).getByRole('button', { name: /Qubits/ });
+  const box = (await tile.boundingBox())!;
+  expect(box.height).toBeGreaterThanOrEqual(70);
+  await tile.click();
+  const sheet = page.getByRole('region', { name: 'The quantum bit' });
+  const sheetBox = (await sheet.boundingBox())!;
+  expect(sheetBox.y + sheetBox.height).toBeGreaterThan(830);
+  expect(sheetBox.width).toBeGreaterThan(380);
+});
+
+test('settings expose quality and motion controls', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Settings' }).click();
   const dialog = page.getByRole('dialog', { name: 'Settings' });
@@ -52,200 +180,4 @@ test('settings expose quality, motion and explanation controls', async ({ page }
   await expect(dialog.getByRole('radio', { name: 'High' })).toBeChecked();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-});
-
-test('double slit: simulation completes, particles are detected, controls respond', async ({ page }) => {
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#double-slit');
-  const status = page
-    .getByRole('group', { name: 'Double-slit controls' })
-    .getByRole('status')
-    .filter({ hasText: 'Particles detected' });
-  await expect(status).toBeVisible({ timeout: 45_000 });
-  await page.getByRole('slider', { name: 'Emission rate' }).fill('100');
-  await expect
-    .poll(async () => Number((await status.textContent())?.replace(/\D/g, '') ?? 0), { timeout: 30_000 })
-    .toBeGreaterThan(20);
-  const measure = page.getByRole('switch', { name: 'Measure which slit' });
-  await measure.click();
-  await expect(measure).toHaveAttribute('aria-checked', 'true');
-  await page.getByRole('button', { name: 'Reset double-slit experiment to defaults' }).click();
-  await expect(measure).toHaveAttribute('aria-checked', 'false');
-  await page.screenshot({ path: 'test-results/double-slit.png' });
-  expect(errors).toEqual([]);
-});
-
-test('wavefunction: ψ stays normalized, phase edits and time evolution work', async ({ page }) => {
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#wavefunction');
-  const group = page.getByRole('group', { name: 'Wavefunction controls' });
-  const readout = group.getByRole('status', { name: 'Measured properties of ψ' });
-  await expect(readout).toContainText('1.000', { timeout: 30_000 });
-  await group.getByRole('slider', { name: 'Relative phase φ' }).fill('1');
-  await expect(group.getByRole('slider', { name: 'Relative phase φ' })).toHaveAttribute(
-    'aria-valuetext',
-    '1.00π',
-  );
-  await expect(readout).toContainText('1.000');
-  await group.getByRole('switch', { name: 'Evolve in time' }).click();
-  await expect(readout).toContainText(/t = [1-9]/, { timeout: 30_000 });
-  await expect(readout).toContainText('1.000');
-  await group.getByRole('button', { name: 'Add a wave packet' }).click();
-  await expect(group.getByRole('radio', { name: 'Packet C' })).toBeVisible();
-  await group.getByRole('button', { name: 'Reset wavefunction to defaults' }).click();
-  await expect(group.getByRole('radio', { name: 'Packet C' })).toHaveCount(0);
-  expect(errors).toEqual([]);
-});
-
-test('superposition: measurement collapses, repeats agree, tallies follow the Born rule', async ({
-  page,
-}) => {
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#superposition');
-  const group = page.getByRole('group', { name: 'Superposition controls' });
-  await expect(group.getByRole('status', { name: 'Qubit state' })).toContainText('75.0%');
-  await group.getByRole('button', { name: 'Measure', exact: true }).click();
-  const result = group.getByText(/^Result: \|[01]⟩/);
-  await expect(result).toBeVisible();
-  const first = await result.textContent();
-  for (let i = 0; i < 5; i++) {
-    await group.getByRole('button', { name: 'Measure', exact: true }).click();
-    await expect(result).toHaveText(first!);
-  }
-  await group.getByRole('button', { name: 'Measure 100 freshly prepared copies' }).click();
-  const tally = group.getByText(/Tally for fresh copies/);
-  await expect(tally).toContainText('Born rule: 75.0%');
-  const counts = (await tally.textContent())!.match(/\|0⟩ (\d+) · \|1⟩ (\d+)/)!;
-  expect(Number(counts[1]) + Number(counts[2])).toBe(101);
-  await group.getByRole('radio', { name: /^X/ }).click();
-  await expect(tally).toContainText('|+⟩ 0 · |−⟩ 0');
-  expect(errors).toEqual([]);
-});
-
-test('orbitals: quantum-number selectors stay valid and readouts follow E = −13.6/n²', async ({ page }) => {
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#orbitals');
-  const group = page.getByRole('group', { name: 'Orbital controls' });
-  await expect(group).toContainText('3d');
-  await expect(group).toContainText('−1.51 eV');
-  await expect(group).toContainText(/95 % inside\s*\d/, { timeout: 30_000 });
-  await group.getByRole('radiogroup', { name: 'Energy level n' }).getByRole('radio', { name: '1' }).click();
-  await expect(group).toContainText('1s');
-  await expect(group).toContainText('−13.61 eV');
-  await expect(group.getByRole('radiogroup', { name: 'Shape l (subshell)' }).getByRole('radio')).toHaveCount(
-    1,
-  );
-  await group.getByRole('radiogroup', { name: 'Energy level n' }).getByRole('radio', { name: '4' }).click();
-  await group
-    .getByRole('radiogroup', { name: 'Shape l (subshell)' })
-    .getByRole('radio', { name: '3 · f' })
-    .click();
-  await expect(group.getByRole('radiogroup', { name: 'Orientation m' }).getByRole('radio')).toHaveCount(7);
-  await expect(group).toContainText('0 radial · 3 angular');
-  await group.getByRole('slider', { name: 'Cross-section' }).fill('0');
-  await expect(group.getByRole('slider', { name: 'Cross-section' })).toHaveAttribute(
-    'aria-valuetext',
-    '50% cut away',
-  );
-  expect(errors).toEqual([]);
-});
-
-test('uncertainty: Gaussians saturate ℏ/2, squeezing trades Δx for Δp, other shapes exceed it', async ({
-  page,
-}) => {
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#uncertainty');
-  const group = page.getByRole('group', { name: 'Uncertainty controls' });
-  const readout = group.getByRole('status', { name: 'Uncertainty readout' });
-  await expect(readout).toContainText('Δx·Δp = 0.500ℏ');
-  await expect(readout).toContainText('Δx = 1.000');
-  await group.getByRole('slider', { name: 'Squeeze position (width)' }).fill('0');
-  await expect(readout).toContainText('Δx = 0.250');
-  await expect(readout).toContainText('Δp = 2.000ℏ');
-  await expect(readout).toContainText('Δx·Δp = 0.500ℏ');
-  await group.getByRole('radio', { name: 'Two peaks' }).click();
-  await expect(group.getByRole('slider', { name: 'Peak separation' })).toBeVisible();
-  await expect(readout).toContainText('above the limit');
-  await group.getByRole('button', { name: 'Reset uncertainty demo to defaults' }).click();
-  await expect(readout).toContainText('minimum-uncertainty state');
-  expect(errors).toEqual([]);
-});
-
-test('tunneling: a full run ends with measured transmission matching the quantum prediction', async ({
-  page,
-}) => {
-  test.setTimeout(120_000);
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#tunneling');
-  const group = page.getByRole('group', { name: 'Tunneling controls' });
-  await group.getByRole('switch', { name: 'Auto-repeat' }).click();
-  const readout = group.getByRole('status', { name: 'Transmission readout' });
-  await expect(readout).toContainText(/Classical: \d/);
-  await expect(readout).toContainText('Final:', { timeout: 100_000 });
-  const text = (await readout.textContent())!;
-  const [, measured, predicted] = text.match(/Final: measured ([\d.]+)% vs predicted ([\d.]+)%/)!;
-  expect(Math.abs(Number(measured) - Number(predicted))).toBeLessThan(1);
-  expect(Number(measured)).toBeGreaterThan(1);
-  expect(errors).toEqual([]);
-});
-
-test('entanglement: Bell counter shows the quantum match rate below the classical minimum', async ({
-  page,
-}) => {
-  test.setTimeout(90_000);
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#entanglement');
-  const group = page.getByRole('group', { name: 'Entanglement controls' });
-  await group.getByRole('slider', { name: 'Pairs per second' }).fill('100');
-  const counter = group.getByRole('status', { name: 'Bell test counter' });
-  // ≥ 2000 pairs: the quantum/classical gap (0.056) is then ≈ 3.5 standard errors.
-  await expect
-    .poll(
-      async () =>
-        Number((await counter.textContent())!.match(/([\d,]+) pairs measured/)![1].replace(/,/g, '')),
-      {
-        timeout: 70_000,
-      },
-    )
-    .toBeGreaterThanOrEqual(2000);
-  const text = (await counter.textContent())!;
-  const [, q] = text.match(/entangled pairs([\d.]+) ±/)!;
-  const [, c] = text.match(/hidden-instruction model([\d.]+) ±/)!;
-  expect(Number(q)).toBeLessThan(Number(c));
-  await group.getByRole('radio', { name: /CHSH/ }).click();
-  await expect(counter).toContainText('|S| — entangled pairs');
-  await expect(group.getByRole('img', { name: /Correlation between Alice/ })).toBeVisible();
-  expect(errors).toEqual([]);
-});
-
-test('applications: four vignettes; Grover search amplifies the marked item to 94.5 %', async ({ page }) => {
-  const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/#applications');
-  const group = page.getByRole('group', { name: 'Applications controls' });
-  await expect(group.getByRole('status').filter({ hasText: 'Tunnelling probability' })).toBeVisible();
-  await group.getByRole('radio', { name: 'MRI' }).click();
-  await group.getByRole('slider', { name: 'Magnetic field' }).fill('3');
-  await expect(group).toContainText('127.7 MHz');
-  await group.getByRole('radio', { name: 'Lasers' }).click();
-  await expect(group).toContainText('1.96 eV');
-  await group.getByRole('radio', { name: 'Quantum computers' }).click();
-  const readout = group.getByRole('status', { name: 'Quantum register readout' });
-  await group.getByRole('button', { name: 'Apply Hadamard to all qubits' }).click();
-  await expect(readout).toContainText('12.5%');
-  for (let k = 0; k < 2; k++) {
-    await group.getByRole('button', { name: 'Apply the oracle' }).click();
-    await group.getByRole('button', { name: 'Apply the diffusion step' }).click();
-  }
-  await expect(readout).toContainText('94.5% after 2 Grover rounds (theory 94.5%)');
-  await group.getByRole('button', { name: 'Measure the qubits' }).click();
-  await expect(readout).toContainText('Measured: |');
-  expect(errors).toEqual([]);
 });

@@ -1,9 +1,24 @@
 # PLAN — Interactive 3D Quantum Physics Explainer
 
-Status: **implemented** (steps 0–10). This document is kept as the original plan; the deviations below record what
-changed during the build and why.
+Status: **superseded by the Quantum Lab redesign** (below). Phase 1 (steps 0–10) was implemented as planned; the
+eight-station scroll journey remains in Git history (commit `05dc5d0`).
 
-### Deviations from the plan
+### Phase 2: Quantum Lab (simplified redesign)
+
+User feedback on phase 1: too much text, too many sections, confusing visuals, too many controls, and no explanation of
+the basics. The approved redesign:
+
+- **One glowing 3D lab room** with four experiment tables, each a small working model. Pick a table (or its name in
+  the menu; large tiles on phones) and the camera glides over; a card holds the text and 2–3 controls. "← Back to
+  lab", Previous/Next, and a ✓ on visited experiments. No scrolling.
+- **Four experiments, in order:** 1. What is quantum physics? (zoom from a grain of sand to an atom; the double slit), 2. Superposition (a particle split between two boxes), 3. Qubits (Bloch arrows and 2ⁿ possibilities), 4. Entanglement (linked pairs always give opposite results).
+- **Short copy** (35–70 words per experiment); equations only inside a closed-by-default "Learn more".
+- **Removed:** the rail, the Simple/Technical toggle, analogy boxes, numeric readouts beyond measurement results,
+  and the wavefunction, orbitals, uncertainty, tunnelling and applications stations.
+- **Physics stays real:** the double slit still replays the split-step Schrödinger solution with Born-sampled hits;
+  every Look / Measure is a Born-rule sample; pairs are sampled from the singlet state.
+
+### Phase 1 deviations from the plan
 
 - **Double slit:** a tall real-potential wall leaked under split-step (V·Δt ≫ 1 is under-resolved), so the mask is a
   complex absorber. Only the upper-slit wave is simulated and the lower one is its mirror image; this is validated

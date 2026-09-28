@@ -18,7 +18,6 @@ export default defineConfig({
             { name: 'r3f', test: /node_modules[\\/](@react-three|postprocessing|maath|three-stdlib)[\\/]/ },
             { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler|zustand)[\\/]/ },
             { name: 'katex', test: /node_modules[\\/]katex[\\/]/ },
-            { name: 'gsap', test: /node_modules[\\/]gsap[\\/]/ },
           ],
         },
       },

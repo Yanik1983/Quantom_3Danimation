@@ -1,40 +1,51 @@
 import katex from 'katex';
 import { describe, expect, it } from 'vitest';
-import { CONTENT } from '.';
+import { EXPERIMENTS } from '../state/lab';
+import { COPY, ENDING, WELCOME } from './experiments';
 
-const words = (paras: string[]) =>
-  paras
-    .join(' ')
-    .replace(/\$[^$]+\$/g, 'x')
-    .split(/\s+/)
-    .filter(Boolean).length;
+const words = (s: string) => s.replace(/\*\*/g, '').split(/\s+/).filter(Boolean).length;
+const inlineMath = (s: string) => [...s.matchAll(/\$([^$]+)\$/g)].map((m) => m[1]);
+const renders = (tex: string, displayMode: boolean) =>
+  katex.renderToString(tex, { throwOnError: true, displayMode, strict: 'error' });
 
-describe('scientific copy', () => {
-  for (const [id, c] of Object.entries(CONTENT)) {
-    if (!c) continue;
-    it(`${id}: simple and technical copy are 120–200 words`, () => {
-      expect(words(c.simple)).toBeGreaterThanOrEqual(120);
-      expect(words(c.simple)).toBeLessThanOrEqual(200);
-      expect(words(c.technical)).toBeGreaterThanOrEqual(120);
-      expect(words(c.technical)).toBeLessThanOrEqual(200);
-    });
+/** Measurement is a physical interaction; never suggest that a mind causes collapse. */
+const FORBIDDEN = /conscious|observer'?s mind|awareness|human observ|someone (?:looks|watches)/i;
 
-    it(`${id}: every equation renders with KaTeX`, () => {
-      const inline = [...c.simple, ...c.technical, ...c.underTheHood.method, c.analogy ?? '']
-        .flatMap((p) => p.match(/\$[^$]+\$/g) ?? [])
-        .map((m) => m.slice(1, -1));
-      const display = c.underTheHood.equations.flatMap((e) => [
-        e.tex,
-        ...(e.caption.match(/\$[^$]+\$/g) ?? []).map((m) => m.slice(1, -1)),
-      ]);
-      for (const tex of [...inline, ...display]) {
-        expect(() => katex.renderToString(tex, { throwOnError: true })).not.toThrow();
-      }
-    });
+describe('lab copy', () => {
+  it('has one entry per experiment', () => {
+    expect(Object.keys(COPY).sort()).toEqual([...EXPERIMENTS].sort());
+  });
 
-    it(`${id}: never attributes collapse to consciousness`, () => {
-      const all = [...c.simple, ...c.technical, c.analogy ?? '', c.altText].join(' ').toLowerCase();
-      expect(all).not.toMatch(/conscious|observer creates|mind causes|looking causes/);
+  for (const id of EXPERIMENTS) {
+    const c = COPY[id];
+    describe(id, () => {
+      it('keeps the main text short and equation-free', () => {
+        expect(words(c.text)).toBeGreaterThanOrEqual(35);
+        expect(words(c.text)).toBeLessThanOrEqual(70);
+        expect(c.text).not.toContain('$');
+      });
+
+      it('keeps "Learn more" brief', () => {
+        const total = c.learnMore.paragraphs.reduce((n, p) => n + words(p), 0);
+        expect(total).toBeLessThanOrEqual(110);
+        expect(c.learnMore.equations.length).toBeGreaterThan(0);
+      });
+
+      it('renders every equation with KaTeX', () => {
+        for (const tex of c.learnMore.equations) expect(() => renders(tex, true)).not.toThrow();
+        for (const p of c.learnMore.paragraphs)
+          for (const tex of inlineMath(p)) expect(() => renders(tex, false)).not.toThrow();
+      });
+
+      it('avoids consciousness-causes-collapse phrasing', () => {
+        const all = [c.text, c.altText, ...c.learnMore.paragraphs].join(' ');
+        expect(all).not.toMatch(FORBIDDEN);
+      });
     });
   }
+
+  it('has a short welcome and ending', () => {
+    expect(words(WELCOME.text)).toBeLessThanOrEqual(35);
+    expect(words(ENDING)).toBeLessThanOrEqual(25);
+  });
 });

@@ -1,10 +1,11 @@
-// Dev helper: screenshot the running app at given stations. Usage:
-//   node scripts/shoot.mjs <baseUrl> <outDir> [station ...] [--mobile]
+// Dev helper: screenshot the running app. Usage:
+//   node scripts/shoot.mjs <baseUrl> <outDir> [lab|basics|superposition|qubits|entanglement ...] [--mobile]
+// Env: WAIT ms before each shot, Q extra URL params (e.g. '&fx=0'), EVAL page JS run before each shot.
 import { chromium } from '@playwright/test';
 
 const [base = 'http://localhost:4173', out = 'test-results/shots', ...rest] = process.argv.slice(2);
 const mobile = rest.includes('--mobile');
-const stations = rest.filter((r) => !r.startsWith('--')).map(Number);
+const views = rest.filter((r) => !r.startsWith('--'));
 const browser = await chromium.launch({
   executablePath: process.env.PW_CHROMIUM ?? '/opt/pw-browsers/chromium',
   args: [
@@ -26,20 +27,19 @@ page.on(
 page.on('pageerror', (e) => errors.push(`[pageerror] ${e.message}`));
 await page.goto(`${base}/?debug${process.env.Q ?? ''}`);
 await page.waitForTimeout(2500);
-for (const s of stations.length ? stations : [0]) {
-  await page.evaluate((st) => {
-    const el = document.querySelector(`[data-station="${st}"]`);
-    const y = el.getBoundingClientRect().top + window.scrollY + (st === 0 ? 0 : el.offsetHeight * 0.02);
-    window.scrollTo({ top: y, behavior: 'instant' });
-  }, s);
+for (const v of views.length ? views : ['lab']) {
+  await page.evaluate((id) => {
+    location.hash = id === 'lab' ? '' : id;
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, v);
   if (process.env.EVAL) {
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(2000);
     await page.evaluate(process.env.EVAL);
   }
   await page.waitForTimeout(Number(process.env.WAIT ?? 3500));
   const perf = await page.evaluate(() => window.__quantumPerf);
-  console.log(`station ${s}:`, JSON.stringify(perf));
-  await page.screenshot({ path: `${out}/station-${s}${mobile ? '-mobile' : ''}.png` });
+  console.log(`${v}:`, JSON.stringify(perf));
+  await page.screenshot({ path: `${out}/${v}${mobile ? '-mobile' : ''}.png` });
 }
 console.log(errors.length ? errors.join('\n') : 'no console errors');
 await browser.close();

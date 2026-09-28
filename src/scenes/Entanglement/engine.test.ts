@@ -1,37 +1,50 @@
 import { describe, expect, it } from 'vitest';
-import { chsh } from '../../physics/bell';
-import { BellEngine } from './engine';
+import { mulberry32 } from '../../physics/rng';
+import { BATCH_SPACING, FLIGHT_FAST, FLIGHT_SLOW, PairEngine } from './engine';
 
-function run(test: 'mermin' | 'chsh', seconds: number, rate = 2000) {
-  const e = new BellEngine(test, 0.5, 42);
-  const dt = 1 / 60;
-  for (let t = dt; t < seconds; t += dt) e.update(t, dt, rate, true);
-  return e;
+function run(e: PairEngine, seconds: number, dt = 1 / 60) {
+  let t = 0;
+  let measured = 0;
+  for (let i = 0; i <= seconds / dt; i++, t += dt) measured += e.update(t);
+  return measured;
 }
 
-describe('BellEngine', () => {
-  it('Mermin: quantum agreement ≈ 1/2, below the classical minimum 5/9 that the model respects', () => {
-    const e = run('mermin', 30);
-    expect(e.total).toBeGreaterThan(50_000);
-    expect(e.agreeQ / e.total).toBeCloseTo(0.5, 2);
-    expect(e.agreeC / e.total).toBeCloseTo(5 / 9, 2);
+describe('entangled pair engine', () => {
+  it('measures one pair after its flight', () => {
+    const e = new PairEngine(mulberry32(1));
+    e.request(1, 0);
+    expect(e.update(0)).toBe(0);
+    expect(e.update(FLIGHT_SLOW - 0.01)).toBe(0);
+    expect(e.update(FLIGHT_SLOW + 0.01)).toBe(1);
+    expect(e.pairs).toBe(1);
   });
 
-  it('CHSH: quantum |S| ≈ 2√2 while the hidden-variable model stays at 2', () => {
-    const e = run('chsh', 30);
-    const Sq = chsh((i, j) => e.correlation(i, j, 'q').e);
-    const Sc = chsh((i, j) => e.correlation(i, j, 'c').e);
-    expect(Math.abs(Sq)).toBeCloseTo(2 * Math.SQRT2, 1);
-    expect(Math.abs(Sc)).toBeCloseTo(2, 1);
+  it('always gives opposite results, each side a fair coin', () => {
+    const e = new PairEngine(mulberry32(42));
+    const n = 4000;
+    e.request(n, 0);
+    const measured = run(e, n * BATCH_SPACING + FLIGHT_FAST + 1);
+    expect(measured).toBe(n);
+    expect(e.pairs).toBe(n);
+    expect(e.opposite).toBe(n);
+    const sigma = Math.sqrt(0.25 / n);
+    expect(Math.abs(e.leftUp / n - 0.5)).toBeLessThan(4 * sigma);
   });
 
-  it('delays detection by the flight time and chooses settings uniformly', () => {
-    const e = new BellEngine('mermin', 1, 1);
-    e.update(0.5, 0.5, 20, true);
-    expect(e.total).toBe(0);
-    for (let t = 0.6; t < 20; t += 0.1) e.update(t, 0.1, 300, true);
-    for (const t of e.tallies) expect(t.n / e.total).toBeCloseTo(1 / 9, 1);
+  it('a batch of 100 finishes within a few seconds', () => {
+    const e = new PairEngine(mulberry32(3));
+    e.request(100, 0);
+    run(e, 100 * BATCH_SPACING + FLIGHT_FAST + 0.2);
+    expect(e.pairs).toBe(100);
+    expect(e.pending).toBe(0);
+  });
+
+  it('clear forgets pairs and counts', () => {
+    const e = new PairEngine(mulberry32(3));
+    e.request(5, 0);
+    run(e, 2);
     e.clear();
-    expect(e.total).toBe(0);
+    expect(e.pairs).toBe(0);
+    expect(e.update(10)).toBe(0);
   });
 });

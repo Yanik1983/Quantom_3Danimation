@@ -13,6 +13,9 @@
 
 html,
 body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
   background: var(--color-void);
   color: #e6e8f0;
   font-family: var(--font-sans);
@@ -39,22 +42,22 @@ body {
   scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
 }
 
-.rail-track {
-  --rail-fill: 0;
-  background: linear-gradient(
-    to bottom,
-    var(--color-cyan) calc(var(--rail-fill) * 100%),
-    rgba(255, 255, 255, 0.14) calc(var(--rail-fill) * 100%)
-  );
-}
-@media (max-width: 767px) {
-  .rail-track {
-    background: linear-gradient(
-      to right,
-      var(--color-cyan) calc(var(--rail-fill) * 100%),
-      rgba(255, 255, 255, 0.14) calc(var(--rail-fill) * 100%)
-    );
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
   }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.animate-sheet {
+  animation: sheet-up 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.animate-fade {
+  animation: fade-in 500ms ease-out both;
 }
 
 .range {
@@ -100,11 +103,6 @@ body {
   outline-color: var(--color-cyan);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
 :root[data-motion='reduce'] * {
   transition-duration: 0ms !important;
   animation-duration: 0ms !important;

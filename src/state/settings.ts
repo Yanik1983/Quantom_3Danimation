@@ -4,19 +4,16 @@ import { TIER_PARAMS, type Tier } from '../lib/quality';
 
 export type TierPref = 'auto' | Tier;
 export type MotionPref = 'system' | 'reduce' | 'full';
-export type ExplainMode = 'simple' | 'technical';
 
 interface SettingsState {
   tierPref: TierPref;
   autoTier: Tier;
   motionPref: MotionPref;
   systemReducedMotion: boolean;
-  explain: ExplainMode;
   setTierPref(t: TierPref): void;
   setAutoTier(t: Tier): void;
   setMotionPref(m: MotionPref): void;
   setSystemReducedMotion(v: boolean): void;
-  setExplain(m: ExplainMode): void;
 }
 
 const safeStorage = createJSONStorage(() => {
@@ -42,17 +39,15 @@ export const useSettings = create<SettingsState>()(
       motionPref: 'system',
       systemReducedMotion:
         typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches,
-      explain: 'simple',
       setTierPref: (tierPref) => set({ tierPref }),
       setAutoTier: (autoTier) => set({ autoTier }),
       setMotionPref: (motionPref) => set({ motionPref }),
       setSystemReducedMotion: (systemReducedMotion) => set({ systemReducedMotion }),
-      setExplain: (explain) => set({ explain }),
     }),
     {
       name: 'quantum-explainer-settings',
       storage: safeStorage,
-      partialize: (s) => ({ tierPref: s.tierPref, motionPref: s.motionPref, explain: s.explain }),
+      partialize: (s) => ({ tierPref: s.tierPref, motionPref: s.motionPref }),
     },
   ),
 );

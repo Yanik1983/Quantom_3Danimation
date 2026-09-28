@@ -9,16 +9,13 @@ import {
   ClampToEdgeWrapping,
   Color,
   Data3DTexture,
-  DataTexture,
   DynamicDrawUsage,
   EdgesGeometry,
-  FloatType,
   HalfFloatType,
   LinearFilter,
   LineBasicMaterial,
   Mesh,
   MeshBasicMaterial,
-  NearestFilter,
   PlaneGeometry,
   RGFormat,
   ShaderMaterial,
@@ -33,8 +30,6 @@ import waveVert from '../../three/shaders/doubleSlit/wave.vert.glsl?raw';
 import waveFrag from '../../three/shaders/doubleSlit/wave.frag.glsl?raw';
 import hitsVert from '../../three/shaders/doubleSlit/hits.vert.glsl?raw';
 import hitsFrag from '../../three/shaders/doubleSlit/hits.frag.glsl?raw';
-import histVert from '../../three/shaders/doubleSlit/hist.vert.glsl?raw';
-import histFrag from '../../three/shaders/doubleSlit/hist.frag.glsl?raw';
 import type { SceneProps } from '../registry';
 import { loadDoubleSlit, type DoubleSlitData } from './data';
 import { BRANCH_COHERENT, DoubleSlitEngine, MAX_PACKETS } from './engine';
@@ -51,7 +46,8 @@ import {
   TEX_H,
   TEX_W,
 } from './geometry';
-import { useDoubleSlit } from './store';
+import { fireRate, IDLE_RATE, useDoubleSlit } from './store';
+import { ZoomLens } from './ZoomLens';
 
 const cfg = DEFAULT_DOUBLE_SLIT;
 const MASK_Z = simXToZ(cfg.maskX);
@@ -59,7 +55,6 @@ const SCREEN_Z = simXToZ(cfg.screenX);
 const SLIT_X = simYToX(cfg.slitSeparation / 2);
 const SLIT_HALF = (cfg.slitWidth * S) / 2;
 const MASK_HEIGHT = 0.6;
-const HIST_HEIGHT = 1.0;
 const HIT_ATTRIBUTES: readonly (readonly [string, number])[] = [
   ['position', 3],
   ['aBirth', 1],
@@ -67,6 +62,8 @@ const HIT_ATTRIBUTES: readonly (readonly [string, number])[] = [
 ];
 /** Seconds to play back one particle's full simulated journey. */
 const CYCLE = 3.2;
+/** The apparatus is built in simulation-derived units; this shrinks it onto its lab table. */
+const TABLE_SCALE = 0.38;
 
 function Mask() {
   const segments = useDisposable(() => {
@@ -130,22 +127,6 @@ function Emitter() {
       <mesh geometry={ring} material={glow} position={[0, 0, -0.21]} />
     </group>
   );
-}
-
-/** Rebin a screen distribution (rows of width dy) exactly into histogram bins across the screen. */
-function rebin(pattern: Float64Array, y0: number, dy: number): Float32Array {
-  const bins = new Float32Array(HIST_BINS);
-  const lo = REGION.y0;
-  const w = (REGION.y1 - REGION.y0) / HIST_BINS;
-  for (let j = 0; j < pattern.length; j++) {
-    const a = y0 + (j - 0.5) * dy;
-    const b = a + dy;
-    for (let k = Math.max(0, Math.floor((a - lo) / w)); k < HIST_BINS && lo + k * w < b; k++) {
-      const overlap = Math.min(b, lo + (k + 1) * w) - Math.max(a, lo + k * w);
-      if (overlap > 0) bins[k] += (pattern[j] * overlap) / dy;
-    }
-  }
-  return bins;
 }
 
 function Experiment({ data, active }: { data: DoubleSlitData; active: boolean }) {
@@ -229,7 +210,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
         fragmentShader: hitsFrag,
         uniforms: {
           uTime: { value: 0 },
-          uSize: { value: tier === 'low' ? 1.6 : 1.25 },
+          uSize: { value: tier === 'low' ? 1.1 : 0.85 },
           uPixelRatio: { value: 1 },
         },
         blending: AdditiveBlending,
@@ -237,31 +218,6 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
         depthWrite: false,
       }),
     [tier],
-  );
-
-  const histData = useMemo(() => new Float32Array(HIST_BINS * 2), []);
-  const histTex = useDisposable(() => {
-    const t = new DataTexture(histData, HIST_BINS, 1, RGFormat, FloatType);
-    t.minFilter = t.magFilter = NearestFilter;
-    t.needsUpdate = true;
-    return t;
-  }, [histData]);
-  const histGeo = useDisposable(() => new PlaneGeometry(PLANE_WIDTH, HIST_HEIGHT), []);
-  const histMat = useDisposable(
-    () =>
-      new ShaderMaterial({
-        vertexShader: histVert,
-        fragmentShader: histFrag,
-        uniforms: { uHist: { value: histTex }, uShowPrediction: { value: 0 } },
-      }),
-    [histTex],
-  );
-  const predicted = useMemo(
-    () => ({
-      coherent: rebin(data.coherent, data.grid.y0, data.grid.dy),
-      whichPath: rebin(data.whichPath, data.grid.y0, data.grid.dy),
-    }),
-    [data],
   );
 
   const ringGeo = useDisposable(() => new TorusGeometry(0.2, 0.03, 12, 48), []);
@@ -279,7 +235,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
   const clock = useRef({
     now: 0,
     lastSync: 0,
-    lastHist: 0,
+    firingSince: -1,
     clearToken: useDoubleSlit.getState().clearToken,
     ringFade: 0,
   });
@@ -295,7 +251,14 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
       hitsGeo.setDrawRange(0, 0);
     }
 
-    engine.update(c.now, dt, st.rate, st.measuring, active);
+    // Idle on the lab table: a slow, steady stream. Open: fire only on request, speeding up.
+    let rate = IDLE_RATE;
+    if (active) {
+      if (st.firing && c.firingSince < 0) c.firingSince = c.now;
+      if (!st.firing) c.firingSince = -1;
+      rate = st.firing ? fireRate(c.now - c.firingSince) : 0;
+    }
+    engine.update(c.now, dt, rate, active ? st.measuring : false, rate > 0);
 
     // Upload only the hits written this frame (the span may wrap around the ring).
     if (engine.dirtyCount > 0) {
@@ -326,7 +289,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     }
 
     // Which-path detectors fade in/out with the toggle and flash on each registration.
-    c.ringFade += ((st.measuring ? 1 : 0) - c.ringFade) * Math.min(1, dt * 6);
+    c.ringFade += ((active && st.measuring ? 1 : 0) - c.ringFade) * Math.min(1, dt * 6);
     ringUpper.opacity = c.ringFade;
     ringLower.opacity = c.ringFade;
     ringUpper.color.setRGB(1, 0.24, 0.73).multiplyScalar(0.5 + 2.5 * engine.flashUpper);
@@ -334,27 +297,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     if (upperRef.current) upperRef.current.visible = c.ringFade > 0.01;
     if (lowerRef.current) lowerRef.current.visible = c.ringFade > 0.01;
 
-    if (engine.histDirty && c.now - c.lastHist > 0.1) {
-      c.lastHist = c.now;
-      engine.histDirty = false;
-      const pred = st.measuring ? predicted.whichPath : predicted.coherent;
-      let maxCount = 0;
-      let maxPred = 0;
-      for (let k = 0; k < HIST_BINS; k++) {
-        maxCount = Math.max(maxCount, engine.hist[k]);
-        maxPred = Math.max(maxPred, pred[k]);
-      }
-      const n = engine.detected;
-      const scale = 0.92 / Math.max(maxCount, n * maxPred, 1);
-      for (let k = 0; k < HIST_BINS; k++) {
-        histData[2 * k] = engine.hist[k] * scale;
-        histData[2 * k + 1] = n > 0 ? n * pred[k] * scale : -1;
-      }
-      histTex.needsUpdate = true;
-    }
-    histMat.uniforms.uShowPrediction.value = st.showPrediction ? 1 : 0;
-
-    if (c.now - c.lastSync > 0.25 && st.detected !== engine.detected) {
+    if (active && c.now - c.lastSync > 0.25 && st.detected !== engine.detected) {
       c.lastSync = c.now;
       useDoubleSlit.setState({ detected: engine.detected });
     }
@@ -364,11 +307,6 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     <>
       <mesh geometry={waveGeo} material={waveMat} rotation={[-Math.PI / 2, 0, 0]} />
       <points geometry={hitsGeo} material={hitsMat} />
-      <mesh
-        geometry={histGeo}
-        material={histMat}
-        position={[0, SCREEN_HEIGHT + 0.2 + HIST_HEIGHT / 2, SCREEN_Z - 0.03]}
-      />
       <mesh ref={upperRef} geometry={ringGeo} material={ringUpper} position={[SLIT_X, 0.3, MASK_Z + 0.2]} />
       <mesh ref={lowerRef} geometry={ringGeo} material={ringLower} position={[-SLIT_X, 0.3, MASK_Z + 0.2]} />
     </>
@@ -379,6 +317,10 @@ export default function DoubleSlitScene({ active }: SceneProps) {
   const tier = useTier();
   const quality = tier === 'low' ? 'low' : 'high';
   const [data, setData] = useState<DoubleSlitData | null>(null);
+  // Opening the experiment starts from a clean screen with the source off.
+  useEffect(() => {
+    if (active) useDoubleSlit.getState().reset();
+  }, [active]);
   useEffect(() => {
     let alive = true;
     loadDoubleSlit(quality).then(
@@ -392,10 +334,15 @@ export default function DoubleSlitScene({ active }: SceneProps) {
 
   return (
     <group>
-      <Mask />
-      <ScreenPanel />
-      <Emitter />
-      {data && <Experiment data={data} active={active} />}
+      <group scale={TABLE_SCALE} position={[0.35, 0.02, 0]}>
+        <Mask />
+        <ScreenPanel />
+        <Emitter />
+        {data && <Experiment data={data} active={active} />}
+      </group>
+      <group position={[-1.55, 2.45, -1.3]} rotation={[-0.3, 0.2, 0]} scale={0.62}>
+        <ZoomLens />
+      </group>
     </group>
   );
 }

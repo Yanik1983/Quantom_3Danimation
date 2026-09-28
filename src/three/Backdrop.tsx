@@ -18,7 +18,6 @@ import {
 import { useDisposable } from '../hooks/useDisposable';
 import { mulberry32 } from '../physics/rng';
 import { useTier, useTierParams } from '../state/settings';
-import { STATIONS } from './stations';
 import starsVert from './shaders/stars.vert.glsl?raw';
 import starsFrag from './shaders/stars.frag.glsl?raw';
 import nebulaVert from './shaders/nebula.vert.glsl?raw';
@@ -39,30 +38,21 @@ function buildStars(count: number): BufferGeometry {
   const size = new Float32Array(count);
   const phase = new Float32Array(count);
   const color = new Float32Array(count * 3);
-  let n = 0;
-  while (n < count) {
-    const x = -250 + rng() * 1050;
-    const y = -260 + rng() * 520;
-    const z = -420 + rng() * 520;
-    // Keep a clear bubble around every station so stars never sit inside a simulation.
-    let clear = true;
-    for (const s of STATIONS) {
-      const dx = x - s.center[0];
-      const dy = y - s.center[1];
-      const dz = z - s.center[2];
-      if (dx * dx + dy * dy + dz * dz < 40 * 40) {
-        clear = false;
-        break;
-      }
-    }
-    if (!clear) continue;
+  for (let n = 0; n < count; n++) {
+    // A shell of stars well outside the lab, visible through the open "roof" and beyond the floor.
+    const u = 2 * rng() - 1;
+    const a = 2 * Math.PI * rng();
+    const r = 140 + rng() * 280;
+    const h = Math.sqrt(1 - u * u);
+    const x = r * h * Math.cos(a);
+    const y = r * u;
+    const z = r * h * Math.sin(a);
     pos.set([x, y, z], n * 3);
     size[n] = 0.6 + Math.pow(rng(), 3) * 2.6;
     phase[n] = rng();
     const c = STAR_COLORS[Math.floor(rng() * STAR_COLORS.length)];
     const b = 0.35 + rng() * 0.65;
     color.set([c[0] * b, c[1] * b, c[2] * b], n * 3);
-    n++;
   }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));

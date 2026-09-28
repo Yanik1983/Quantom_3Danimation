@@ -1,36 +1,32 @@
 import { create } from 'zustand';
-import type { BellTest } from './engine';
 
-export interface BellSummary {
-  total: number;
-  agreeQ: number;
-  agreeC: number;
-  /** Measured correlations per setting pair: [i][j] → {e, se, n} for quantum and model. */
-  cells: { i: number; j: number; delta: number; q: number; qse: number; c: number; cse: number; n: number }[];
-  alicePlusByBob: number[];
+export const MANY = 100;
+
+export interface PairSummary {
+  pairs: number;
+  opposite: number;
+  leftUp: number;
+  last: { left: 1 | -1; right: 1 | -1 } | null;
 }
 
 interface EntanglementState {
-  test: BellTest;
-  /** Entangled pairs per second. */
-  rate: number;
-  /** Bumped to clear the counters. */
-  clearToken: number;
-  summary: BellSummary | null;
-  setTest(t: BellTest): void;
-  setRate(r: number): void;
-  clear(): void;
+  /** Latest request from the controls; the scene launches `n` pairs when `token` changes. */
+  request: { n: number; token: number };
+  /** Pairs launched but not yet measured. */
+  inFlight: number;
+  summary: PairSummary;
+  measurePair(): void;
+  measureMany(): void;
   reset(): void;
 }
 
-const DEFAULTS = { test: 'mermin' as BellTest, rate: 8 };
+const EMPTY: PairSummary = { pairs: 0, opposite: 0, leftUp: 0, last: null };
 
 export const useEntanglement = create<EntanglementState>()((set) => ({
-  ...DEFAULTS,
-  clearToken: 0,
-  summary: null,
-  setTest: (test) => set((s) => ({ test, clearToken: s.clearToken + 1, summary: null })),
-  setRate: (rate) => set({ rate }),
-  clear: () => set((s) => ({ clearToken: s.clearToken + 1, summary: null })),
-  reset: () => set((s) => ({ ...DEFAULTS, clearToken: s.clearToken + 1, summary: null })),
+  request: { n: 0, token: 0 },
+  inFlight: 0,
+  summary: EMPTY,
+  measurePair: () => set((s) => ({ request: { n: 1, token: s.request.token + 1 } })),
+  measureMany: () => set((s) => ({ request: { n: MANY, token: s.request.token + 1 } })),
+  reset: () => set((s) => ({ request: { n: 0, token: s.request.token + 1 }, inFlight: 0, summary: EMPTY })),
 }));

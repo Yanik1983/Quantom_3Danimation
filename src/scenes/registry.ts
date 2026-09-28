@@ -1,7 +1,8 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import type { ExperimentId } from '../state/lab';
 
 export interface SceneProps {
-  /** True while this is the station the viewer is at; neighbours are mounted but idle. */
+  /** True while this experiment is open; otherwise the model idles on its table in the lab. */
   active: boolean;
 }
 
@@ -10,38 +11,22 @@ export interface SceneEntry {
   Controls: LazyExoticComponent<ComponentType>;
 }
 
-/** Section id → lazily loaded 3D scene and DOM controls. */
-export const SCENES: Partial<Record<string, SceneEntry>> = {
-  'double-slit': {
+/** Experiment → lazily loaded 3D model (table-local coordinates, top at y = 0) and DOM controls. */
+export const SCENES: Record<ExperimentId, SceneEntry> = {
+  basics: {
     Scene: lazy(() => import('./DoubleSlit/Scene')),
     Controls: lazy(() => import('./DoubleSlit/Controls')),
-  },
-  wavefunction: {
-    Scene: lazy(() => import('./Wavefunction/Scene')),
-    Controls: lazy(() => import('./Wavefunction/Controls')),
   },
   superposition: {
     Scene: lazy(() => import('./Superposition/Scene')),
     Controls: lazy(() => import('./Superposition/Controls')),
   },
-  orbitals: {
-    Scene: lazy(() => import('./Orbitals/Scene')),
-    Controls: lazy(() => import('./Orbitals/Controls')),
-  },
-  uncertainty: {
-    Scene: lazy(() => import('./Uncertainty/Scene')),
-    Controls: lazy(() => import('./Uncertainty/Controls')),
-  },
-  tunneling: {
-    Scene: lazy(() => import('./Tunneling/Scene')),
-    Controls: lazy(() => import('./Tunneling/Controls')),
+  qubits: {
+    Scene: lazy(() => import('./Qubits/Scene')),
+    Controls: lazy(() => import('./Qubits/Controls')),
   },
   entanglement: {
     Scene: lazy(() => import('./Entanglement/Scene')),
     Controls: lazy(() => import('./Entanglement/Controls')),
-  },
-  applications: {
-    Scene: lazy(() => import('./Applications/Scene')),
-    Controls: lazy(() => import('./Applications/Controls')),
   },
 };
