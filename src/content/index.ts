@@ -1,6 +1,7 @@
 import { doubleSlit } from './doubleSlit';
 import { orbitals } from './orbitals';
 import { superposition } from './superposition';
+import { uncertainty } from './uncertainty';
 import { wavefunction } from './wavefunction';
 import type { SectionContent } from './types';
 
@@ -10,4 +11,5 @@ export const CONTENT: Partial<Record<string, SectionContent>> = {
   wavefunction,
   superposition,
   orbitals,
+  uncertainty,
 };

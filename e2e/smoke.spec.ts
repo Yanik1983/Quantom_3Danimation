@@ -153,3 +153,25 @@ test('orbitals: quantum-number selectors stay valid and readouts follow E = −1
   );
   expect(errors).toEqual([]);
 });
+
+test('uncertainty: Gaussians saturate ℏ/2, squeezing trades Δx for Δp, other shapes exceed it', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#uncertainty');
+  const group = page.getByRole('group', { name: 'Uncertainty controls' });
+  const readout = group.getByRole('status', { name: 'Uncertainty readout' });
+  await expect(readout).toContainText('Δx·Δp = 0.500ℏ');
+  await expect(readout).toContainText('Δx = 1.000');
+  await group.getByRole('slider', { name: 'Squeeze position (width)' }).fill('0');
+  await expect(readout).toContainText('Δx = 0.250');
+  await expect(readout).toContainText('Δp = 2.000ℏ');
+  await expect(readout).toContainText('Δx·Δp = 0.500ℏ');
+  await group.getByRole('radio', { name: 'Two peaks' }).click();
+  await expect(group.getByRole('slider', { name: 'Peak separation' })).toBeVisible();
+  await expect(readout).toContainText('above the limit');
+  await group.getByRole('button', { name: 'Reset uncertainty demo to defaults' }).click();
+  await expect(readout).toContainText('minimum-uncertainty state');
+  expect(errors).toEqual([]);
+});

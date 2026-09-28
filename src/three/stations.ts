@@ -21,7 +21,7 @@ export const STATIONS: readonly Station[] = [
   { center: [140, -4, -10], camera: [0, 4.4, 10.8], look: [0, -1.1, -0.2] }, // wavefunction
   { center: [205, 10, -55], camera: [0, 1.2, 14], look: ORIGIN }, // superposition
   { center: [275, 0, -25], camera: [0, 1.5, 15], look: ORIGIN }, // orbitals
-  { center: [345, -10, -65], camera: [0, 2.5, 14], look: ORIGIN }, // uncertainty
+  { center: [345, -10, -65], camera: [0, 1.2, 14.5], look: ORIGIN }, // uncertainty
   { center: [415, 4, -40], camera: [0, 3, 14], look: [0, 0.5, 0] }, // tunneling
   { center: [485, -6, -80], camera: [0, 2, 15], look: ORIGIN }, // entanglement
   { center: [555, 8, -50], camera: [0, 1.8, 15], look: ORIGIN }, // applications
