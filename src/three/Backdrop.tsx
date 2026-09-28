@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   AdditiveBlending,
   BackSide,
@@ -15,6 +15,7 @@ import {
   WebGLRenderTarget,
   type WebGLRenderer,
 } from 'three';
+import { useDisposable } from '../hooks/useDisposable';
 import { mulberry32 } from '../physics/rng';
 import { useTier, useTierParams } from '../state/settings';
 import { STATIONS } from './stations';
@@ -74,8 +75,8 @@ function buildStars(count: number): BufferGeometry {
 function Starfield() {
   const { stars } = useTierParams();
   const dpr = useThree((s) => s.viewport.dpr);
-  const geometry = useMemo(() => buildStars(stars), [stars]);
-  const material = useMemo(
+  const geometry = useDisposable(() => buildStars(stars), [stars]);
+  const material = useDisposable(
     () =>
       new ShaderMaterial({
         vertexShader: starsVert,
@@ -87,8 +88,6 @@ function Starfield() {
       }),
     [],
   );
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useEffect(() => () => material.dispose(), [material]);
   useEffect(() => {
     material.uniforms.uPixelRatio.value = dpr;
   }, [dpr, material]);
@@ -121,9 +120,9 @@ function Nebula() {
   const tier = useTier();
   const gl = useThree((s) => s.gl);
   const ref = useRef<Mesh>(null);
-  const target = useMemo(() => bakeNebula(gl, tier === 'low' ? 1024 : 2048), [gl, tier]);
-  const geometry = useMemo(() => new SphereGeometry(1800, 48, 24), []);
-  const material = useMemo(
+  const target = useDisposable(() => bakeNebula(gl, tier === 'low' ? 1024 : 2048), [gl, tier]);
+  const geometry = useDisposable(() => new SphereGeometry(1800, 48, 24), []);
+  const material = useDisposable(
     () =>
       new ShaderMaterial({
         vertexShader: nebulaVert,
@@ -134,9 +133,6 @@ function Nebula() {
       }),
     [target],
   );
-  useEffect(() => () => target.dispose(), [target]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useEffect(() => () => material.dispose(), [material]);
   useFrame((state) => {
     // The sky is infinitely far away: keep it centred on the camera.
     ref.current?.position.copy(state.camera.position);

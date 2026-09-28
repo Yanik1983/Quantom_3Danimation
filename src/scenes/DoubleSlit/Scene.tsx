@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDisposable } from '../../hooks/useDisposable';
 import {
   AdditiveBlending,
   BoxGeometry,
@@ -67,33 +68,31 @@ const HIT_ATTRIBUTES: readonly (readonly [string, number])[] = [
 /** Seconds to play back one particle's full simulated journey. */
 const CYCLE = 3.2;
 
-/** Dispose three.js resources created in a memo when they are replaced or unmounted. */
-function useDispose(...items: { dispose(): void }[]) {
-  useEffect(() => () => items.forEach((i) => i.dispose()), items); // eslint-disable-line react-hooks/exhaustive-deps
-}
-
 function Mask() {
-  const segments = useMemo(() => {
+  const segments = useDisposable(() => {
     const w = PLANE_WIDTH / 2;
     const spans: [number, number][] = [
       [-w, -SLIT_X - SLIT_HALF],
       [-SLIT_X + SLIT_HALF, SLIT_X - SLIT_HALF],
       [SLIT_X + SLIT_HALF, w],
     ];
-    return spans.map(([a, b]) => {
+    const items = spans.map(([a, b]) => {
       const box = new BoxGeometry(b - a, MASK_HEIGHT, cfg.maskThickness * S);
       return { x: (a + b) / 2, box, edges: new EdgesGeometry(box) };
     });
+    return {
+      items,
+      dispose: () => items.forEach((i) => (i.box.dispose(), i.edges.dispose())),
+    };
   }, []);
-  const body = useMemo(() => new MeshBasicMaterial({ color: new Color('#0a0d1a') }), []);
-  const rim = useMemo(
+  const body = useDisposable(() => new MeshBasicMaterial({ color: new Color('#0a0d1a') }), []);
+  const rim = useDisposable(
     () => new LineBasicMaterial({ color: new Color('#22e4ff'), transparent: true, opacity: 0.55 }),
     [],
   );
-  useDispose(body, rim, ...segments.flatMap((s) => [s.box, s.edges]));
   return (
     <group position={[0, MASK_HEIGHT / 2, MASK_Z]}>
-      {segments.map((s, i) => (
+      {segments.items.map((s, i) => (
         <group key={i} position={[s.x, 0, 0]}>
           <mesh geometry={s.box} material={body} />
           <lineSegments geometry={s.edges} material={rim} />
@@ -104,14 +103,13 @@ function Mask() {
 }
 
 function ScreenPanel() {
-  const panel = useMemo(() => new PlaneGeometry(PLANE_WIDTH, SCREEN_HEIGHT), []);
-  const frame = useMemo(() => new EdgesGeometry(panel), [panel]);
-  const mat = useMemo(() => new MeshBasicMaterial({ color: new Color('#070912') }), []);
-  const rim = useMemo(
+  const panel = useDisposable(() => new PlaneGeometry(PLANE_WIDTH, SCREEN_HEIGHT), []);
+  const frame = useDisposable(() => new EdgesGeometry(panel), [panel]);
+  const mat = useDisposable(() => new MeshBasicMaterial({ color: new Color('#070912') }), []);
+  const rim = useDisposable(
     () => new LineBasicMaterial({ color: new Color('#8b5cf6'), transparent: true, opacity: 0.6 }),
     [],
   );
-  useDispose(panel, frame, mat, rim);
   return (
     <group position={[0, SCREEN_HEIGHT / 2, SCREEN_Z - 0.03]}>
       <mesh geometry={panel} material={mat} />
@@ -121,11 +119,10 @@ function ScreenPanel() {
 }
 
 function Emitter() {
-  const body = useMemo(() => new BoxGeometry(0.7, 0.3, 0.4), []);
-  const ring = useMemo(() => new TorusGeometry(0.13, 0.03, 12, 48), []);
-  const dark = useMemo(() => new MeshBasicMaterial({ color: new Color('#0c1022') }), []);
-  const glow = useMemo(() => new MeshBasicMaterial({ color: new Color(0.4, 2.2, 2.8) }), []);
-  useDispose(body, ring, dark, glow);
+  const body = useDisposable(() => new BoxGeometry(0.7, 0.3, 0.4), []);
+  const ring = useDisposable(() => new TorusGeometry(0.13, 0.03, 12, 48), []);
+  const dark = useDisposable(() => new MeshBasicMaterial({ color: new Color('#0c1022') }), []);
+  const glow = useDisposable(() => new MeshBasicMaterial({ color: new Color(0.4, 2.2, 2.8) }), []);
   const z = simXToZ(REGION.x0) + 0.1;
   return (
     <group position={[0, 0.16, z]}>
@@ -157,7 +154,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
   const dpr = useThree((s) => s.viewport.dpr);
   const capacity = Math.round(30000 * particleScale);
 
-  const volume = useMemo(() => {
+  const volume = useDisposable(() => {
     const t = new Data3DTexture(data.volume, TEX_W, TEX_H, data.frames);
     t.format = RGFormat;
     t.type = HalfFloatType;
@@ -191,8 +188,8 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
 
   const segW = tier === 'low' ? 90 : tier === 'medium' ? 150 : 200;
   const segD = tier === 'low' ? 110 : tier === 'medium' ? 180 : 240;
-  const waveGeo = useMemo(() => new PlaneGeometry(PLANE_WIDTH, PLANE_DEPTH, segW, segD), [segW, segD]);
-  const waveMat = useMemo(
+  const waveGeo = useDisposable(() => new PlaneGeometry(PLANE_WIDTH, PLANE_DEPTH, segW, segD), [segW, segD]);
+  const waveMat = useDisposable(
     () =>
       new ShaderMaterial({
         vertexShader: glsl(waveVert),
@@ -212,7 +209,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     [volume, tier],
   );
 
-  const hitsGeo = useMemo(() => {
+  const hitsGeo = useDisposable(() => {
     const g = new BufferGeometry();
     const pos = new BufferAttribute(engine.positions, 3).setUsage(DynamicDrawUsage);
     const birth = new BufferAttribute(engine.births, 1).setUsage(DynamicDrawUsage);
@@ -225,7 +222,7 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     g.boundingSphere = new Sphere(new Vector3(0, SCREEN_HEIGHT / 2, SCREEN_Z), PLANE_WIDTH);
     return g;
   }, [engine]);
-  const hitsMat = useMemo(
+  const hitsMat = useDisposable(
     () =>
       new ShaderMaterial({
         vertexShader: hitsVert,
@@ -243,14 +240,14 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
   );
 
   const histData = useMemo(() => new Float32Array(HIST_BINS * 2), []);
-  const histTex = useMemo(() => {
+  const histTex = useDisposable(() => {
     const t = new DataTexture(histData, HIST_BINS, 1, RGFormat, FloatType);
     t.minFilter = t.magFilter = NearestFilter;
     t.needsUpdate = true;
     return t;
   }, [histData]);
-  const histGeo = useMemo(() => new PlaneGeometry(PLANE_WIDTH, HIST_HEIGHT), []);
-  const histMat = useMemo(
+  const histGeo = useDisposable(() => new PlaneGeometry(PLANE_WIDTH, HIST_HEIGHT), []);
+  const histMat = useDisposable(
     () =>
       new ShaderMaterial({
         vertexShader: histVert,
@@ -267,31 +264,17 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     [data],
   );
 
-  const ringGeo = useMemo(() => new TorusGeometry(0.2, 0.03, 12, 48), []);
-  const ringUpper = useMemo(
+  const ringGeo = useDisposable(() => new TorusGeometry(0.2, 0.03, 12, 48), []);
+  const ringUpper = useDisposable(
     () => new MeshBasicMaterial({ color: new Color('#ff3dbb'), transparent: true }),
     [],
   );
-  const ringLower = useMemo(
+  const ringLower = useDisposable(
     () => new MeshBasicMaterial({ color: new Color('#ff3dbb'), transparent: true }),
     [],
   );
   const upperRef = useRef<Mesh>(null);
   const lowerRef = useRef<Mesh>(null);
-
-  useDispose(
-    volume,
-    waveGeo,
-    waveMat,
-    hitsGeo,
-    hitsMat,
-    histTex,
-    histGeo,
-    histMat,
-    ringGeo,
-    ringUpper,
-    ringLower,
-  );
 
   const clock = useRef({
     now: 0,

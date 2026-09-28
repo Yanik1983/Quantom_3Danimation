@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useMemo } from 'react';
 import { AdditiveBlending, DoubleSide, PlaneGeometry, ShaderMaterial } from 'three';
+import { useDisposable } from '../hooks/useDisposable';
 import { useReducedMotion, useTier } from '../state/settings';
 import type { SceneProps } from '../scenes/registry';
 import { glsl } from './shaders';
@@ -12,8 +12,8 @@ export function IntroScene({ active }: SceneProps) {
   const tier = useTier();
   const reduced = useReducedMotion();
   const segs = tier === 'low' ? 110 : tier === 'medium' ? 180 : 260;
-  const geometry = useMemo(() => new PlaneGeometry(20, 20, segs, segs), [segs]);
-  const material = useMemo(
+  const geometry = useDisposable(() => new PlaneGeometry(20, 20, segs, segs), [segs]);
+  const material = useDisposable(
     () =>
       new ShaderMaterial({
         vertexShader: vert,
@@ -26,8 +26,6 @@ export function IntroScene({ active }: SceneProps) {
       }),
     [],
   );
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  useEffect(() => () => material.dispose(), [material]);
   useFrame((_, dt) => {
     if (!active) return;
     material.uniforms.uTime.value += dt * (reduced ? 0.35 : 1);
