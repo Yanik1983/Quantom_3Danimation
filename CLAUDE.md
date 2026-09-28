@@ -1,7 +1,6 @@
 # CLAUDE.md — Quantum 3D Explainer
 
 Interactive single-page 3D app teaching quantum physics. See `PLAN.md` for architecture and build order.
-Status: planning — toolchain not yet scaffolded (commands below become valid after step 0).
 
 ## Stack
 
@@ -18,6 +17,10 @@ GSAP + ScrollTrigger/ScrollToPlugin · Zustand · Tailwind CSS v4 · KaTeX · cu
 | Physics unit tests            | `npm test` (watch: `npm run test:watch`) |
 | E2E smoke (headless Chromium) | `npm run e2e`                            |
 | Production build / preview    | `npm run build` · `npm run preview`      |
+
+Visual check: `npm run build && npx vite preview --port 4173 &` then
+`node scripts/shoot.mjs http://localhost:4173 test-results/shots <station…> [--mobile]` (env `Q='&fx=0'` appends URL params, `WAIT` ms per shot).
+URL flags: `?debug` (fps / draw-call overlay, also `window.__quantumPerf`), `?fx=0` (no post-processing), `?sky=0` (no backdrop).
 
 Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `playwright install`.
 

@@ -15,3 +15,99 @@ body {
   color: #e6e8f0;
   font-family: var(--font-sans);
 }
+
+.glass {
+  background: rgba(14, 16, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 20px 60px -20px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+/* Backdrop blur re-samples the live canvas every frame; drop it on low tier. */
+:root[data-blur='off'] .glass {
+  background: rgba(10, 12, 22, 0.86);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.card-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.5) transparent;
+}
+
+.rail-track {
+  --rail-fill: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--color-cyan) calc(var(--rail-fill) * 100%),
+    rgba(255, 255, 255, 0.14) calc(var(--rail-fill) * 100%)
+  );
+}
+@media (max-width: 767px) {
+  .rail-track {
+    background: linear-gradient(
+      to right,
+      var(--color-cyan) calc(var(--rail-fill) * 100%),
+      rgba(255, 255, 255, 0.14) calc(var(--rail-fill) * 100%)
+    );
+  }
+}
+
+.range {
+  appearance: none;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+.range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(34, 228, 255, 0.6), rgba(139, 92, 246, 0.6));
+}
+.range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(34, 228, 255, 0.6), rgba(139, 92, 246, 0.6));
+}
+.range::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(34, 228, 255, 0.8);
+}
+.range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(34, 228, 255, 0.8);
+}
+.range:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+:focus-visible {
+  outline-color: var(--color-cyan);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+:root[data-motion='reduce'] * {
+  transition-duration: 0ms !important;
+  animation-duration: 0ms !important;
+}
+
+.katex {
+  font-size: 1.05em;
+}
