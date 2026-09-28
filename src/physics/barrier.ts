@@ -4,17 +4,20 @@
  *   E < V₀:  T = [1 + V₀² sinh²(κa) / (4E(V₀ − E))]⁻¹,   κ = √(2(V₀ − E))
  *   E > V₀:  T = [1 + V₀² sin²(k₂a) / (4E(E − V₀))]⁻¹,   k₂ = √(2(E − V₀))
  *   E = V₀:  T = [1 + V₀a²/2]⁻¹
+ *
+ * `hbar2Over2m` = ℏ²/2m sets the units: ½ for ℏ = m = 1; 0.0381 eV·nm² for an electron with
+ * energies in eV and lengths in nm.
  */
-export function transmission(E: number, V0: number, a: number): number {
+export function transmission(E: number, V0: number, a: number, hbar2Over2m = 0.5): number {
   if (E <= 0) return 0;
   if (V0 === 0 || a === 0) return 1;
   const d = E - V0;
-  if (Math.abs(d) < 1e-9 * Math.max(1, Math.abs(V0))) return 1 / (1 + (V0 * a * a) / 2);
+  if (Math.abs(d) < 1e-9 * Math.max(1, Math.abs(V0))) return 1 / (1 + (V0 * a * a) / (4 * hbar2Over2m));
   if (d < 0) {
-    const s = Math.sinh(Math.sqrt(-2 * d) * a);
+    const s = Math.sinh(Math.sqrt(-d / hbar2Over2m) * a);
     return 1 / (1 + (V0 * V0 * s * s) / (4 * E * -d));
   }
-  const s = Math.sin(Math.sqrt(2 * d) * a);
+  const s = Math.sin(Math.sqrt(d / hbar2Over2m) * a);
   return 1 / (1 + (V0 * V0 * s * s) / (4 * E * d));
 }
 
