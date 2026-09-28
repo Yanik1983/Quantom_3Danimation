@@ -20,7 +20,16 @@ export function isPowerOfTwo(n: number): boolean {
   return n > 0 && (n & (n - 1)) === 0;
 }
 
-export function createFFT(n: number): FFTPlan {
+interface Tables {
+  rev: Uint32Array;
+  cos: Float64Array;
+  /** sin(−2πk/n) for the forward transform. */
+  sinF: Float64Array;
+  /** sin(+2πk/n) for the inverse transform. */
+  sinI: Float64Array;
+}
+
+function tables(n: number): Tables {
   if (!isPowerOfTwo(n)) throw new Error(`FFT size must be a power of two, got ${n}`);
   const rev = new Uint32Array(n);
   const bits = Math.round(Math.log2(n));
@@ -29,56 +38,75 @@ export function createFFT(n: number): FFTPlan {
     for (let b = 0; b < bits; b++) r |= ((i >>> b) & 1) << (bits - 1 - b);
     rev[i] = r;
   }
-  // cos/sin of -2πk/n for k < n/2
-  const half = n >> 1;
-  const cos = new Float64Array(Math.max(half, 1));
-  const sin = new Float64Array(Math.max(half, 1));
-  for (let k = 0; k < half; k++) {
-    cos[k] = Math.cos((-2 * Math.PI * k) / n);
-    sin[k] = Math.sin((-2 * Math.PI * k) / n);
+  const half = Math.max(n >> 1, 1);
+  const cos = new Float64Array(half);
+  const sinF = new Float64Array(half);
+  const sinI = new Float64Array(half);
+  for (let k = 0; k < n >> 1; k++) {
+    cos[k] = Math.cos((2 * Math.PI * k) / n);
+    sinF[k] = -Math.sin((2 * Math.PI * k) / n);
+    sinI[k] = -sinF[k];
   }
+  return { rev, cos, sinF, sinI };
+}
 
-  function transform(d: ComplexArray, o: number, sign: 1 | -1): void {
-    for (let i = 0; i < n; i++) {
-      const j = rev[i];
-      if (j > i) {
-        const a = o + 2 * i;
-        const b = o + 2 * j;
-        let t = d[a];
-        d[a] = d[b];
-        d[b] = t;
-        t = d[a + 1];
-        d[a + 1] = d[b + 1];
-        d[b + 1] = t;
-      }
-    }
-    for (let size = 2; size <= n; size <<= 1) {
-      const h = size >> 1;
-      const step = n / size;
-      for (let start = 0; start < n; start += size) {
-        for (let k = 0; k < h; k++) {
-          const wr = cos[k * step];
-          const wi = sign * sin[k * step];
-          const a = o + 2 * (start + k);
-          const b = o + 2 * (start + k + h);
-          const br = d[b] * wr - d[b + 1] * wi;
-          const bi = d[b] * wi + d[b + 1] * wr;
-          d[b] = d[a] - br;
-          d[b + 1] = d[a + 1] - bi;
-          d[a] += br;
-          d[a + 1] += bi;
-        }
-      }
+/** In-place 1D transform of n contiguous complex samples starting at float offset o. */
+function transform1D(d: Float64Array, o: number, n: number, t: Tables, sin: Float64Array): void {
+  if (n < 2) return;
+  const { rev, cos } = t;
+  for (let i = 0; i < n; i++) {
+    const j = rev[i];
+    if (j > i) {
+      const a = o + 2 * i;
+      const b = o + 2 * j;
+      let tmp = d[a];
+      d[a] = d[b];
+      d[b] = tmp;
+      tmp = d[a + 1];
+      d[a + 1] = d[b + 1];
+      d[b + 1] = tmp;
     }
   }
+  // Size-2 stage: twiddle is 1.
+  for (let a = o; a < o + 2 * n; a += 4) {
+    const br = d[a + 2];
+    const bi = d[a + 3];
+    d[a + 2] = d[a] - br;
+    d[a + 3] = d[a + 1] - bi;
+    d[a] += br;
+    d[a + 1] += bi;
+  }
+  for (let size = 4; size <= n; size <<= 1) {
+    const h = size >> 1;
+    const step = n / size;
+    for (let k = 0; k < h; k++) {
+      const wr = cos[k * step];
+      const wi = sin[k * step];
+      for (let start = k; start < n; start += size) {
+        const a = o + 2 * start;
+        const b = a + 2 * h;
+        const xr = d[b];
+        const xi = d[b + 1];
+        const br = xr * wr - xi * wi;
+        const bi = xr * wi + xi * wr;
+        d[b] = d[a] - br;
+        d[b + 1] = d[a + 1] - bi;
+        d[a] += br;
+        d[a + 1] += bi;
+      }
+    }
+  }
+}
 
+export function createFFT(n: number): FFTPlan {
+  const t = tables(n);
   return {
     n,
     forward(data, offset = 0) {
-      transform(data, offset, 1);
+      transform1D(data, offset, n, t, t.sinF);
     },
     inverse(data, offset = 0) {
-      transform(data, offset, -1);
+      transform1D(data, offset, n, t, t.sinI);
       const s = 1 / n;
       for (let i = offset; i < offset + 2 * n; i++) data[i] *= s;
     },
@@ -93,30 +121,70 @@ export interface FFT2DPlan {
   inverse(data: ComplexArray): void;
 }
 
-/** 2D FFT: rows in place, columns via a preallocated scratch column. */
+/**
+ * Column transform performed as an FFT over *rows as vectors*: every butterfly combines
+ * two whole rows, so memory access stays contiguous and each twiddle is loaded once per
+ * row pair instead of once per element.
+ */
+function transformColumns(d: Float64Array, nx: number, ny: number, t: Tables, sin: Float64Array): void {
+  const { rev, cos } = t;
+  const rowLen = 2 * nx;
+  for (let i = 0; i < ny; i++) {
+    const j = rev[i];
+    if (j > i) {
+      const a = i * rowLen;
+      const b = j * rowLen;
+      for (let x = 0; x < rowLen; x++) {
+        const tmp = d[a + x];
+        d[a + x] = d[b + x];
+        d[b + x] = tmp;
+      }
+    }
+  }
+  for (let size = 2; size <= ny; size <<= 1) {
+    const h = size >> 1;
+    const step = ny / size;
+    for (let k = 0; k < h; k++) {
+      const wr = cos[k * step];
+      const wi = sin[k * step];
+      for (let start = k; start < ny; start += size) {
+        const a = start * rowLen;
+        const b = (start + h) * rowLen;
+        if (k === 0) {
+          for (let x = 0; x < rowLen; x++) {
+            const bv = d[b + x];
+            d[b + x] = d[a + x] - bv;
+            d[a + x] += bv;
+          }
+        } else {
+          for (let x = 0; x < rowLen; x += 2) {
+            const xr = d[b + x];
+            const xi = d[b + x + 1];
+            const br = xr * wr - xi * wi;
+            const bi = xr * wi + xi * wr;
+            d[b + x] = d[a + x] - br;
+            d[b + x + 1] = d[a + x + 1] - bi;
+            d[a + x] += br;
+            d[a + x + 1] += bi;
+          }
+        }
+      }
+    }
+  }
+}
+
+/** 2D FFT: contiguous row transforms, then vectorized column transforms. */
 export function createFFT2D(nx: number, ny: number): FFT2DPlan {
-  const px = createFFT(nx);
-  const py = nx === ny ? px : createFFT(ny);
-  const col = new Float64Array(2 * ny);
+  const tx = tables(nx);
+  const ty = nx === ny ? tx : tables(ny);
 
   function run(data: ComplexArray, inverse: boolean): void {
-    for (let y = 0; y < ny; y++) {
-      if (inverse) px.inverse(data, 2 * y * nx);
-      else px.forward(data, 2 * y * nx);
-    }
-    for (let x = 0; x < nx; x++) {
-      for (let y = 0; y < ny; y++) {
-        const i = 2 * (y * nx + x);
-        col[2 * y] = data[i];
-        col[2 * y + 1] = data[i + 1];
-      }
-      if (inverse) py.inverse(col);
-      else py.forward(col);
-      for (let y = 0; y < ny; y++) {
-        const i = 2 * (y * nx + x);
-        data[i] = col[2 * y];
-        data[i + 1] = col[2 * y + 1];
-      }
+    const sx = inverse ? tx.sinI : tx.sinF;
+    for (let y = 0; y < ny; y++) transform1D(data, 2 * y * nx, nx, tx, sx);
+    transformColumns(data, nx, ny, ty, inverse ? ty.sinI : ty.sinF);
+    if (inverse) {
+      const s = 1 / (nx * ny);
+      for (let i = 0; i < data.length; i++) data[i] *= s;
     }
   }
 
