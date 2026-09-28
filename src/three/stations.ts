@@ -19,7 +19,7 @@ const ORIGIN = [0, 0, 0] as const;
 export const STATIONS: readonly Station[] = [
   { center: [0, 0, 0], camera: [0, 0.4, 14], look: ORIGIN },
   { center: [70, 6, -30], camera: [0, 7.6, 11.6], look: [0, 0.4, -1.4] }, // double slit
-  { center: [140, -4, -10], camera: [0, 6, 12.5], look: [0, -0.6, 0] }, // wavefunction
+  { center: [140, -4, -10], camera: [0, 4.4, 10.8], look: [0, -1.1, -0.2] }, // wavefunction
   { center: [205, 10, -55], camera: DEFAULT_CAM, look: ORIGIN }, // superposition
   { center: [275, 0, -25], camera: [0, 1.5, 15], look: ORIGIN }, // orbitals
   { center: [345, -10, -65], camera: [0, 2.5, 14], look: ORIGIN }, // uncertainty

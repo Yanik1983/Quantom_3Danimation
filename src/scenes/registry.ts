@@ -16,4 +16,8 @@ export const SCENES: Partial<Record<string, SceneEntry>> = {
     Scene: lazy(() => import('./DoubleSlit/Scene')),
     Controls: lazy(() => import('./DoubleSlit/Controls')),
   },
+  wavefunction: {
+    Scene: lazy(() => import('./Wavefunction/Scene')),
+    Controls: lazy(() => import('./Wavefunction/Controls')),
+  },
 };

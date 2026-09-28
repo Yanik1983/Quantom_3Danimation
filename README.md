@@ -85,3 +85,10 @@ Each item is also marked `APPROX:` or explained inline in the code.
    crossed the screen; the spread in arrival times is not shown.
 9. **Probability current.** The screen flux uses the phase gradient between neighbouring grid
    points, which is exact for plane waves with k·Δx < π/2.
+10. **Wavefunction box.** The editable ψ lives on a 128 × 128 grid over 20 × 20 units. "Free"
+    evolution uses a periodic box, so a packet leaving one edge re-enters at the opposite edge.
+    The harmonic bowl (ω = 0.5) keeps packets away from the edges.
+11. **Half-float display.** ψ is uploaded to the GPU as 16-bit floats (about 3 significant
+    digits). The physics runs in 64-bit; only the picture is quantized.
+12. **Colour wheel.** Phase is shown by a cyan → violet → magenta cycle. It is a display choice
+    with no physical meaning of its own; only phase differences are observable.

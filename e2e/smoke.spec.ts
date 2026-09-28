@@ -75,3 +75,26 @@ test('double slit: simulation completes, particles are detected, controls respon
   await page.screenshot({ path: 'test-results/double-slit.png' });
   expect(errors).toEqual([]);
 });
+
+test('wavefunction: ψ stays normalized, phase edits and time evolution work', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#wavefunction');
+  const group = page.getByRole('group', { name: 'Wavefunction controls' });
+  const readout = group.getByRole('status', { name: 'Measured properties of ψ' });
+  await expect(readout).toContainText('1.000', { timeout: 30_000 });
+  await group.getByRole('slider', { name: 'Relative phase φ' }).fill('1');
+  await expect(group.getByRole('slider', { name: 'Relative phase φ' })).toHaveAttribute(
+    'aria-valuetext',
+    '1.00π',
+  );
+  await expect(readout).toContainText('1.000');
+  await group.getByRole('switch', { name: 'Evolve in time' }).click();
+  await expect(readout).toContainText(/t = [1-9]/, { timeout: 30_000 });
+  await expect(readout).toContainText('1.000');
+  await group.getByRole('button', { name: 'Add a wave packet' }).click();
+  await expect(group.getByRole('radio', { name: 'Packet C' })).toBeVisible();
+  await group.getByRole('button', { name: 'Reset wavefunction to defaults' }).click();
+  await expect(group.getByRole('radio', { name: 'Packet C' })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
