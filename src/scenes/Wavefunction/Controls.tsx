@@ -1,9 +1,10 @@
+import { num } from '../../lib/format';
 import { Equation } from '../../ui/Equation';
 import { Button, ControlPanel, LiveDescription, Segmented, Slider, Toggle } from '../../ui/controls';
 import { K_MAX } from './Scene';
 import { MAX_PACKETS, PACKET_NAMES, useWavefunction } from './store';
 
-const fmt = (v: number, d = 2) => (Math.abs(v) < 0.005 ? '0.00' : v.toFixed(d));
+const fmt = (v: number, d = 2) => num(v, d);
 
 export default function WavefunctionControls() {
   const s = useWavefunction();
@@ -24,8 +25,7 @@ export default function WavefunctionControls() {
           <span className="text-white">{o ? o.norm.toFixed(3) : '—'}</span>
         </span>
         <span>
-          <Equation tex="\langle E\rangle" /> ={' '}
-          <span className="text-white">{o ? o.energy.toFixed(2) : '—'}</span>
+          <Equation tex="\langle E\rangle" /> = <span className="text-white">{o ? num(o.energy) : '—'}</span>
         </span>
         <span>
           <Equation tex="\langle x\rangle" /> = <span className="text-white">{o ? fmt(o.x) : '—'}</span>
@@ -145,7 +145,7 @@ export default function WavefunctionControls() {
         {s.packets
           .map(
             (q, j) =>
-              `Packet ${PACKET_NAMES[j]} at (${q.x.toFixed(1)}, ${q.y.toFixed(1)}) with momentum (${q.kx.toFixed(1)}, ${q.ky.toFixed(1)}) and phase ${(q.phase / Math.PI).toFixed(2)} pi.`,
+              `Packet ${PACKET_NAMES[j]} at (${num(q.x, 1)}, ${num(q.y, 1)}) with momentum (${num(q.kx, 1)}, ${num(q.ky, 1)}) and phase ${(q.phase / Math.PI).toFixed(2)} pi.`,
           )
           .join(' ')}{' '}
         {o ? `Average position (${fmt(o.x, 1)}, ${fmt(o.y, 1)}), energy ${o.energy.toFixed(2)}.` : ''}

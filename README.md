@@ -92,3 +92,10 @@ Each item is also marked `APPROX:` or explained inline in the code.
     digits). The physics runs in 64-bit; only the picture is quantized.
 12. **Colour wheel.** Phase is shown by a cyan → violet → magenta cycle. It is a display choice
     with no physical meaning of its own; only phase differences are observable.
+13. **Hydrogen model.** Orbitals are exact non-relativistic eigenfunctions of an infinitely heavy
+    nucleus, without spin or fine structure (corrections of order 10⁻⁵ of E_n). The real
+    (p_x, d_xy, …) combinations are shown rather than complex e^{imφ} states.
+14. **Finite samples and auto-scaling.** Each orbital cloud holds 18 000–70 000 exact samples of
+    |ψ|² and is rescaled so that 95% of its probability fills the same volume. Readouts give the
+    true size (⟨r⟩ and r₉₅ in Bohr radii). The nucleus marker is drawn vastly larger than a real
+    proton (≈10⁻⁵ of the atom).

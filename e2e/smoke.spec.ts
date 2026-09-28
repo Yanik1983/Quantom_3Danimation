@@ -124,3 +124,32 @@ test('superposition: measurement collapses, repeats agree, tallies follow the Bo
   await expect(tally).toContainText('|+⟩ 0 · |−⟩ 0');
   expect(errors).toEqual([]);
 });
+
+test('orbitals: quantum-number selectors stay valid and readouts follow E = −13.6/n²', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/#orbitals');
+  const group = page.getByRole('group', { name: 'Orbital controls' });
+  await expect(group).toContainText('3d');
+  await expect(group).toContainText('−1.51 eV');
+  await expect(group).toContainText(/95 % inside\s*\d/, { timeout: 30_000 });
+  await group.getByRole('radiogroup', { name: 'Energy level n' }).getByRole('radio', { name: '1' }).click();
+  await expect(group).toContainText('1s');
+  await expect(group).toContainText('−13.61 eV');
+  await expect(group.getByRole('radiogroup', { name: 'Shape l (subshell)' }).getByRole('radio')).toHaveCount(
+    1,
+  );
+  await group.getByRole('radiogroup', { name: 'Energy level n' }).getByRole('radio', { name: '4' }).click();
+  await group
+    .getByRole('radiogroup', { name: 'Shape l (subshell)' })
+    .getByRole('radio', { name: '3 · f' })
+    .click();
+  await expect(group.getByRole('radiogroup', { name: 'Orientation m' }).getByRole('radio')).toHaveCount(7);
+  await expect(group).toContainText('0 radial · 3 angular');
+  await group.getByRole('slider', { name: 'Cross-section' }).fill('0');
+  await expect(group.getByRole('slider', { name: 'Cross-section' })).toHaveAttribute(
+    'aria-valuetext',
+    '50% cut away',
+  );
+  expect(errors).toEqual([]);
+});

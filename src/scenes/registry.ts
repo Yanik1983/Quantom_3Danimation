@@ -24,4 +24,8 @@ export const SCENES: Partial<Record<string, SceneEntry>> = {
     Scene: lazy(() => import('./Superposition/Scene')),
     Controls: lazy(() => import('./Superposition/Controls')),
   },
+  orbitals: {
+    Scene: lazy(() => import('./Orbitals/Scene')),
+    Controls: lazy(() => import('./Orbitals/Controls')),
+  },
 };
