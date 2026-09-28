@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-void: #05060a;
+  --color-cyan: #22e4ff;
+  --color-violet: #8b5cf6;
+  --color-magenta: #ff3dbb;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Space Grotesk Variable', 'Inter Variable', ui-sans-serif, sans-serif;
+}
+
+html,
+body {
+  background: var(--color-void);
+  color: #e6e8f0;
+  font-family: var(--font-sans);
+}
