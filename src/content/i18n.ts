@@ -10,7 +10,7 @@ import * as he from './experiments.he';
 const UI_EN = {
   dir: 'ltr' as 'ltr' | 'rtl',
   appName: 'Quantum Lab',
-  documentTitle: 'Quantum Lab: quantum physics, simply explained',
+  documentTitle: 'Quantum Lab: how a quantum computer works, simply explained',
   /** The switch shows the other language, in that language. */
   switchTo: { label: 'עברית', lang: 'he' as Lang, aria: 'Switch to Hebrew' },
 
@@ -28,6 +28,9 @@ const UI_EN = {
   experiments: 'Experiments',
   visited: '(visited)',
   learnMore: 'Learn more',
+  inComputer: 'In a quantum computer',
+  closeComputer: '← Back to lab',
+  computerLabel: 'The quantum computer',
 
   settings: 'Settings',
   visualQuality: 'Visual quality',
@@ -82,6 +85,20 @@ const UI_EN = {
     const times = (n: number) => `${n} ${n === 1 ? 'time' : 'times'}`;
     return `(left was up ${times(up)}, down ${times(down)})`;
   },
+
+  // A tiny quantum computer (Grover search)
+  searchSteps: ['Spread out', 'Mark the card', 'Interfere', 'Measure'] as readonly string[],
+  searchStep: (i: number, name: string) => `Step ${i}: ${name}`,
+  hideNew: 'Hide a new card',
+  searchInfo: [
+    'The 2 qubits start at 00. The card is hidden under one of the cups.',
+    'Now every cup has the same chance: 25%.',
+    'The oracle gave the right cup a minus sign. Its chance is still 25%, so looking now would not help.',
+    'Interference: the minus sign makes that cup grow to 100% and the others shrink to 0%.',
+  ] as readonly string[],
+  searchFound: (cup: string) =>
+    `Found under cup **${cup}** in one go. A normal computer, checking one cup at a time, needs up to 3 tries.`,
+  searchChances: (list: string) => `Chances: ${list}.`,
 };
 
 export type UiStrings = typeof UI_EN;
@@ -89,7 +106,7 @@ export type UiStrings = typeof UI_EN;
 const UI_HE: UiStrings = {
   dir: 'rtl',
   appName: 'המעבדה הקוונטית',
-  documentTitle: 'המעבדה הקוונטית: פיזיקה קוונטית, בפשטות',
+  documentTitle: 'המעבדה הקוונטית: איך עובד מחשב קוונטי, בפשטות',
   switchTo: { label: 'English', lang: 'en', aria: 'החלפה לאנגלית' },
 
   experimentOf: (i, n, name) => `ניסוי ${i} מתוך ${n} · ${name}`,
@@ -106,6 +123,9 @@ const UI_HE: UiStrings = {
   experiments: 'ניסויים',
   visited: '(הושלם)',
   learnMore: 'לקריאה נוספת',
+  inComputer: 'במחשב קוונטי',
+  closeComputer: '→ חזרה למעבדה',
+  computerLabel: 'המחשב הקוונטי',
 
   settings: 'הגדרות',
   visualQuality: 'איכות תצוגה',
@@ -156,6 +176,19 @@ const UI_HE: UiStrings = {
     const times = (n: number) => (n === 1 ? 'פעם אחת' : `${n} פעמים`);
     return `(השמאלי היה למעלה ${times(up)}, ולמטה ${times(down)})`;
   },
+
+  searchSteps: ['פיזור', 'סימון הקלף', 'התאבכות', 'מדידה'],
+  searchStep: (i, name) => `שלב ${i}: ${name}`,
+  hideNew: 'הסתירו קלף חדש',
+  searchInfo: [
+    'שני הקיוביטים מתחילים ב־00. הקלף מוסתר מתחת לאחת הכוסות.',
+    'עכשיו לכל כוס אותו סיכוי: 25%.',
+    'האורקל נתן לכוס הנכונה סימן מינוס. הסיכוי שלה עדיין 25%, ולכן הסתכלות עכשיו לא הייתה עוזרת.',
+    'התאבכות: סימן המינוס גורם לכוס הזו לגדול ל־100% ולאחרות להתכווץ ל־0%.',
+  ],
+  searchFound: (cup) =>
+    `נמצא מתחת לכוס **${cup}** בניסיון אחד. מחשב רגיל, שבודק כוס אחת בכל פעם, צריך עד 3 ניסיונות.`,
+  searchChances: (list) => `סיכויים: ${list}.`,
 };
 
 export const UI: Record<Lang, UiStrings> = { en: UI_EN, he: UI_HE };
@@ -163,6 +196,7 @@ export const UI: Record<Lang, UiStrings> = { en: UI_EN, he: UI_HE };
 export interface Content {
   COPY: typeof en.COPY;
   WELCOME: typeof en.WELCOME;
+  COMPUTER: typeof en.COMPUTER;
   ENDING: string;
   LAB_ALT: string;
 }

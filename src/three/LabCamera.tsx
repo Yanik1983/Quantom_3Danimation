@@ -6,7 +6,7 @@ import { useLab } from '../state/lab';
 import { UI } from '../content/i18n';
 import { selectReducedMotion, useSettings } from '../state/settings';
 import { rig } from './rig';
-import { closeUpPose, OVERVIEW } from './tables';
+import { closeUpPose, COMPUTER_POSE, OVERVIEW } from './tables';
 
 // Pre-allocated scratch: the rig runs every frame and must not allocate.
 const targetPos = new Vector3();
@@ -48,13 +48,16 @@ export function LabCamera() {
 
   useFrame((state, dt) => {
     const { width, height } = state.size;
-    const current = useLab.getState().current;
+    const { current, computer } = useLab.getState();
     const settings = useSettings.getState();
     const reduced = selectReducedMotion(settings);
-    const f = framing(width, height, current !== null, UI[settings.lang].dir === 'rtl');
+    const f = framing(width, height, current !== null || computer, UI[settings.lang].dir === 'rtl');
 
     if (current) closeUpPose(current, targetPos, targetLook);
-    else {
+    else if (computer) {
+      targetPos.set(...COMPUTER_POSE.camera);
+      targetLook.set(...COMPUTER_POSE.look);
+    } else {
       targetPos.set(...OVERVIEW.camera);
       targetLook.set(...OVERVIEW.look);
     }

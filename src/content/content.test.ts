@@ -36,6 +36,11 @@ for (const lang of ['en', 'he'] as const) {
           expect(c.learnMore.equations.length).toBeGreaterThan(0);
         });
 
+        it('says briefly how a quantum computer uses it', () => {
+          expect(words(c.inComputer)).toBeLessThanOrEqual(30);
+          expect(c.inComputer).not.toContain('$');
+        });
+
         it('renders every equation with KaTeX', () => {
           for (const tex of c.learnMore.equations) expect(() => renders(tex, true)).not.toThrow();
           for (const p of c.learnMore.paragraphs)
@@ -48,6 +53,12 @@ for (const lang of ['en', 'he'] as const) {
         });
       });
     }
+
+    it('explains the quantum computer briefly', () => {
+      const { COMPUTER } = CONTENT[lang];
+      expect(words(COMPUTER.text)).toBeLessThanOrEqual(75);
+      expect(COMPUTER.text).not.toMatch(FORBIDDEN);
+    });
 
     it('has a short welcome and ending', () => {
       expect(words(WELCOME.text)).toBeLessThanOrEqual(35);

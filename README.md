@@ -1,6 +1,7 @@
-# Quantum Lab: quantum physics, simply explained
+# Quantum Lab: how a quantum computer works, simply explained
 
-An interactive 3D lab with four hands-on experiments that explain quantum physics from the basics. Pick a table in the
+An interactive 3D lab with five hands-on experiments that explain how a quantum computer works, starting from the
+basics of quantum physics. Pick a table in the
 glowing lab, the camera glides over, and a short card explains what you are seeing, with two or three controls to try.
 Equations are tucked away behind **Learn more**.
 
@@ -10,8 +11,11 @@ Equations are tucked away behind **Learn more**.
 | 2   | Superposition            | Set the left/right mix; Look; Look 100 times                                        | Two-state system; every look is a Born-rule sample, P = \|b\|²                               |
 | 3   | Qubits                   | Tilt the Bloch arrow; Measure; 1–4 qubits with 2, 4, 8, 16 possibilities            | Bloch sphere; product-state probabilities over 2ⁿ outcomes                                   |
 | 4   | Entanglement             | Measure a pair; measure 100 pairs                                                   | Singlet state, joint outcome sampled at detection; always opposite, each side random         |
+| 5   | A tiny quantum computer  | Step through a search: spread out, mark, interfere, measure; hide a new card        | Grover search on the real 2-qubit state (oracle + diffusion); Born-rule measurement          |
 
-The opening screen explains what quantum physics is; after all four experiments the lab shows a closing line.
+The opening screen asks how a quantum computer works; each card ends with one line on how a quantum computer uses its
+idea. Clicking the gold refrigerator (or **Meet the quantum computer**, `#computer`) glides to it and explains what it
+is. After all five experiments the lab shows a closing line.
 
 ## Setup
 
@@ -66,7 +70,7 @@ manual override in Settings.
 DOM (React + Tailwind)     lab overlay (welcome + menu), experiment card (text, controls, Learn more), settings
    │  Zustand lab store ──▶ open experiment, visited set; synced with the URL hash / history
    ▼
-One R3F <Canvas>           lab room (floor, light columns, four tables); LabCamera glides between the overview
+One R3F <Canvas>           lab room (walls, floor, cryostats, racks, five tables); LabCamera glides between the overview
                            and each table's close-up; post-processing (bloom, vignette, CA, flight DOF)
    ▲
 Web Worker                 the 2D Schrödinger solve for the double slit
@@ -122,3 +126,7 @@ Each item is also marked `APPROX:` or explained inline in the code.
 12. **Half-float display.** ψ is uploaded to the GPU as 16-bit floats; the physics runs in 64-bit.
 13. **Colour wheel.** In the double slit, phase is shown by a cyan → violet → magenta cycle, a display choice with no
     physical meaning of its own.
+14. **Ideal 2-qubit Grover search.** The gates are perfect (no noise or decoherence), and the oracle is applied as a
+    sign flip on the stored state rather than built from individual gates. The bars show the real amplitudes, sign
+    included; with four cups one round gives the card with certainty, and the measurement is still a Born-rule sample.
+    The hidden card is chosen at random; the "up to 3 tries" for a normal computer assumes it checks cups in turn.

@@ -1,4 +1,5 @@
-import { useFrame, useThree } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { useEffect } from 'react';
 import {
   AdditiveBlending,
@@ -6,6 +7,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  CylinderGeometry,
   DoubleSide,
   Mesh,
   MeshBasicMaterial,
@@ -28,6 +30,8 @@ import screenVert from '../shaders/lab/screen.vert.glsl?raw';
 import screenFrag from '../shaders/lab/screen.frag.glsl?raw';
 import ledVert from '../shaders/lab/led.vert.glsl?raw';
 import ledFrag from '../shaders/lab/led.frag.glsl?raw';
+import { useUi } from '../../content/i18n';
+import { useLab } from '../../state/lab';
 import { useTier } from '../../state/settings';
 import { buildLabRoom, MATERIALS, ROOM, type MaterialName } from './build';
 
@@ -247,12 +251,60 @@ function Equipment() {
  * The room around the experiment tables, modelled on a superconducting quantum-computing lab:
  * tiled floor, panelled walls, dilution refrigerators and racks of control electronics.
  */
+/**
+ * Clicking the open refrigerator explains what it is: an invisible volume around it catches
+ * the pointer, and a label names it in the lab overview.
+ */
+function ComputerHotspot() {
+  const t = useUi();
+  const inLab = useLab((s) => s.current === null && !s.computer);
+  const narrow = useThree((s) => s.size.width < 700);
+  const geo = useDisposable(() => new CylinderGeometry(2, 2, 7.6, 16), []);
+  const mat = useDisposable(() => new MeshBasicMaterial({ colorWrite: false, depthWrite: false }), []);
+  const onOver = (e: ThreeEvent<PointerEvent>) => {
+    if (!useLab.getState().current) {
+      e.stopPropagation();
+      document.body.style.cursor = 'pointer';
+    }
+  };
+  const onClick = (e: ThreeEvent<MouseEvent>) => {
+    if (useLab.getState().current) return;
+    e.stopPropagation();
+    document.body.style.cursor = '';
+    useLab.getState().showComputer();
+  };
+  return (
+    <group position={[-ROOM.fridgeX, 0, ROOM.fridgeZ]}>
+      <mesh
+        geometry={geo}
+        material={mat}
+        position={[0, 4.1, 0]}
+        onPointerOver={onOver}
+        onPointerOut={() => (document.body.style.cursor = '')}
+        onClick={onClick}
+      />
+      {inLab && !narrow && (
+        <Html position={[0, 0.2, 0]} center zIndexRange={[5, 0]}>
+          <div
+            aria-hidden="true"
+            onClick={() => useLab.getState().showComputer()}
+            className="cursor-pointer rounded-full border border-amber-300/40 bg-void/70 px-3.5 py-1.5 text-sm font-medium whitespace-nowrap text-amber-200 backdrop-blur-sm select-none hover:bg-amber-300/15"
+          >
+            {t.computerLabel}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
 export function LabRoom() {
   return (
     <>
       <Walls />
       <Floor />
       <Equipment />
+      <ComputerHotspot />
     </>
   );
 }

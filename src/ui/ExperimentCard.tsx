@@ -38,6 +38,12 @@ function Card({ id }: { id: ExperimentId }) {
       <p className="mt-3 text-[15px] leading-relaxed text-slate-300">
         <RichText text={copy.text} />
       </p>
+      <div className="mt-3 rounded-xl border border-cyan/25 bg-cyan/[0.06] px-3.5 py-2.5 text-sm leading-relaxed text-slate-200">
+        <p className="text-xs font-semibold text-cyan">{t.inComputer}</p>
+        <p className="mt-0.5">
+          <RichText text={copy.inComputer} />
+        </p>
+      </div>
       <p className="sr-only">{copy.altText}</p>
 
       <div role="group" aria-label={t.experimentControls} className="mt-5 space-y-4">

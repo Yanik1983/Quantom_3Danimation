@@ -15,8 +15,8 @@ export interface TablePose {
 }
 
 export const OVERVIEW = {
-  camera: [0, 7.6, 16.2] as const,
-  look: [0, 0.5, -2.2] as const,
+  camera: [0, 8.6, 19.6] as const,
+  look: [0, 0.3, -2.4] as const,
 };
 
 const FACING = new Vector3(0, 0, 14);
@@ -30,12 +30,19 @@ function table(
   return { position: [x, 0, z], yaw: Math.atan2(FACING.x - x, FACING.z - z), camera, look };
 }
 
-/** Four tables on a gentle arc, in the order the experiments are meant to be visited. */
+/** Five tables on a gentle arc, in the order the experiments are meant to be visited. */
 export const TABLES: Record<ExperimentId, TablePose> = {
-  basics: table(-7.9, -1.3, [0, 4.4, 6.9], [-0.2, 0.9, -0.3]),
-  superposition: table(-2.65, -3.7, [0, 3.2, 6.6], [0, 0.8, 0]),
-  qubits: table(2.65, -3.7, [0, 3.1, 7.0], [0, 1.2, 0]),
-  entanglement: table(7.9, -1.3, [0, 2.9, 6.9], [0, 0.9, 0]),
+  basics: table(-10, 0.2, [0, 4.4, 6.9], [-0.2, 0.9, -0.3]),
+  superposition: table(-5.1, -3.1, [0, 3.2, 6.6], [0, 0.8, 0]),
+  qubits: table(0, -4.3, [0, 3.1, 7.0], [0, 1.2, 0]),
+  entanglement: table(5.1, -3.1, [0, 2.9, 6.9], [0, 0.9, 0]),
+  search: table(10, 0.2, [0.3, 3.6, 7.2], [0.3, 1.1, 0]),
+};
+
+/** Close-up of the open dilution refrigerator (world coordinates). */
+export const COMPUTER_POSE = {
+  camera: [-7.4, 4.7, -5.2] as const,
+  look: [-12, 3.9, -12.5] as const,
 };
 
 if (Object.keys(TABLES).length !== EXPERIMENTS.length) throw new Error('One table per experiment');

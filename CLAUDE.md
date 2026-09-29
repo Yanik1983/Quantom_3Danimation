@@ -1,7 +1,8 @@
 # CLAUDE.md — Quantum Lab
 
-A glowing 3D lab with four simple experiments (basics/double slit, superposition, qubits, entanglement) that explain
-quantum physics from the basics. `README.md` holds setup, architecture and the **Assumptions & Simplifications** log;
+A glowing 3D lab with five simple experiments (basics/double slit, superposition, qubits, entanglement, search = a tiny
+quantum computer running Grover) that explain how a quantum computer works, from the basics. Each card has an "In a
+quantum computer" line; the gold refrigerator opens a card about real quantum computers (`#computer`). `README.md` holds setup, architecture and the **Assumptions & Simplifications** log;
 `PLAN.md` holds the original plan and the phase-2 redesign brief. **The user wants to be consulted before updates**:
 propose changes (and show screenshots) before building or deploying. Pushing to the default branch redeploys Pages.
 
@@ -48,7 +49,7 @@ Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `pla
   `LabCamera.tsx`, `room/` (the quantum-computing lab around the tables), effects, GLSL in `shaders/`.
 - `src/ui/` — `LabOverlay` (welcome + menu/tiles), `ExperimentCard` (+ `LearnMore`), settings, controls primitives.
 
-### Adding an experiment (consult the user first — they asked for exactly four)
+### Adding an experiment (consult the user first — they approved exactly these five)
 
 1. Physics module + tests. 2. Worker if heavy. 3. Scene/Controls/store. 4. Copy in `experiments.ts` (the content test
    enforces length, KaTeX validity, no consciousness-collapse phrasing). 5. Add the id to `EXPERIMENTS`, the registry and
@@ -77,7 +78,7 @@ Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `pla
 
 ## Performance budgets
 
-60 fps on a 2020-era laptop; ≥ 30 fps mid-range mobile. Instanced meshes / GPU points; all four small models stay mounted;
+60 fps on a 2020-era laptop; ≥ 30 fps mid-range mobile. Instanced meshes / GPU points; all five small models stay mounted;
 adaptive tier (`low/medium/high`, `lib/quality.ts`) with manual override. Headless Chromium is software WebGL — its fps is
 a lower bound only; watch draw calls and per-frame work instead.
 

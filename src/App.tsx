@@ -3,6 +3,7 @@ import { initLabHistory } from './state/lab';
 import { UI } from './content/i18n';
 import { selectReducedMotion, useLang, useSettings, useTierParams } from './state/settings';
 import { CanvasRoot } from './three/CanvasRoot';
+import { ComputerCard } from './ui/ComputerCard';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { ExperimentCard } from './ui/ExperimentCard';
 import { Header } from './ui/Header';
@@ -43,6 +44,7 @@ export function App() {
       <main>
         <LabOverlay />
         <ExperimentCard />
+        <ComputerCard />
       </main>
       {debug && <DebugOverlay />}
     </>

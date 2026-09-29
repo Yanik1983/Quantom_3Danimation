@@ -25,11 +25,12 @@ const roomEnabled =
 
 function TableLabel({ id, index }: { id: ExperimentId; index: number }) {
   const current = useLab((s) => s.current);
+  const computer = useLab((s) => s.computer);
   const visited = useLab((s) => s.visited.includes(id));
   const hovered = useLab((s) => s.hovered === id);
   const narrow = useThree((s) => s.size.width < 700);
   const name = useContent().COPY[id].name;
-  if (current !== null || narrow) return null;
+  if (current !== null || computer || narrow) return null;
   return (
     <Html position={[0, -0.55, TABLE_RADIUS * 0.9]} center zIndexRange={[5, 0]}>
       <div

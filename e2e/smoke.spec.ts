@@ -30,17 +30,18 @@ test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
-test('the lab boots, renders WebGL and offers four experiments', async ({ page }) => {
+test('the lab boots, renders WebGL and offers five experiments', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
   await expect(page.locator('canvas').first()).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Quantum physics, simply explained');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('How does a quantum computer work?');
   await expect(page.getByText('Choose an experiment to begin.')).toBeVisible();
   await expect(menu(page).getByRole('button')).toHaveText([
     /What is quantum physics\?/,
     /Superposition/,
     /Qubits/,
     /Entanglement/,
+    /A tiny quantum computer/,
   ]);
   await page.waitForFunction(() => !!window.__quantumPerf, undefined, { timeout: 20_000 });
   const perf = await page.evaluate(() => window.__quantumPerf!);
@@ -57,7 +58,7 @@ test('open an experiment, step through, return to the lab, and see visited marks
     .click();
   await expect(page.getByRole('heading', { name: 'In two places at once' })).toBeFocused();
   await expect(page).toHaveURL(/#superposition$/);
-  await expect(page.getByText('Experiment 2 of 4')).toBeVisible();
+  await expect(page.getByText('Experiment 2 of 5')).toBeVisible();
 
   await page.getByRole('button', { name: 'Next experiment' }).click();
   await expect(page.getByRole('heading', { name: 'The quantum bit' })).toBeVisible();
@@ -75,11 +76,52 @@ test('open an experiment, step through, return to the lab, and see visited marks
   expect(errors).toEqual([]);
 });
 
-test('finishing all four shows the closing line', async ({ page }) => {
+test('finishing all five shows the closing line', async ({ page }) => {
   await page.goto('/#basics');
-  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Next experiment' }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Next experiment' }).click();
   await page.getByRole('button', { name: 'Finish and return to the lab' }).click();
-  await expect(page.getByText(/That's quantum physics: waves, mixes, qubits and links/)).toBeVisible();
+  await expect(page.getByText(/that is how a quantum computer works/)).toBeVisible();
+});
+
+test('each experiment says how a quantum computer uses it', async ({ page }) => {
+  await page.goto('/#qubits');
+  await expect(page.getByText('In a quantum computer')).toBeVisible();
+  await expect(page.getByText(/superconducting circuits on a chip/)).toBeVisible();
+});
+
+test('the gold machine opens a card about the quantum computer', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Meet the quantum computer' }).click();
+  await expect(page.getByRole('heading', { name: 'A real quantum computer' })).toBeFocused();
+  await expect(page).toHaveURL(/#computer$/);
+  await expect(page.getByText(/colder than outer space/)).toBeVisible();
+  await page.getByRole('button', { name: '← Back to lab' }).click();
+  await expect(menu(page)).toBeVisible();
+  await page.goto('/#computer');
+  await expect(page.getByRole('heading', { name: 'A real quantum computer' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('a tiny quantum computer: Grover search finds the card in one round', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('/#search');
+  const controls = card(page);
+  await expect(controls.getByText('The 2 qubits start at 00.', { exact: false })).toBeVisible({
+    timeout: 30_000,
+  });
+  await controls.getByRole('button', { name: 'Step 1: Spread out' }).click();
+  await expect(controls.getByText('Now every cup has the same chance: 25%.')).toBeVisible();
+  await controls.getByRole('button', { name: 'Step 2: Mark the card' }).click();
+  await expect(controls.getByText(/Its chance is still 25%/)).toBeVisible();
+  await controls.getByRole('button', { name: 'Step 3: Interfere' }).click();
+  await expect(controls.getByText(/grow to 100%/)).toBeVisible();
+  await controls.getByRole('button', { name: 'Step 4: Measure' }).click();
+  await expect(controls.getByText(/Found under cup (00|01|10|11) in one go/)).toBeVisible();
+  await expect(controls.getByRole('button', { name: 'Step 4: Measure' })).toBeDisabled();
+  await controls.getByRole('button', { name: 'Hide a new card' }).click();
+  await expect(controls.getByRole('button', { name: 'Step 1: Spread out' })).toBeEnabled();
+  expect(errors).toEqual([]);
 });
 
 test('learn more is closed by default and holds the equations', async ({ page }) => {
@@ -191,7 +233,7 @@ test('Hebrew: the switch translates the lab, lays it out right to left and is re
   const html = page.locator('html');
   await expect(html).toHaveAttribute('lang', 'he');
   await expect(html).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('פיזיקה קוונטית, בפשטות');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('איך עובד מחשב קוונטי?');
 
   await page
     .getByRole('navigation', { name: 'ניסויים' })

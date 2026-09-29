@@ -4,15 +4,16 @@ import { EXPERIMENTS, useLab, type ExperimentId } from '../state/lab';
 
 /** Lab overview: the welcome text and the experiment menu (large tiles on phones). */
 export function LabOverlay() {
-  const { COPY, ENDING, LAB_ALT, WELCOME } = useContent();
+  const { COPY, COMPUTER, ENDING, LAB_ALT, WELCOME } = useContent();
   const t = useUi();
   const current = useLab((s) => s.current);
+  const computer = useLab((s) => s.computer);
   const visited = useLab((s) => s.visited);
   const hovered = useLab((s) => s.hovered);
   const lastOpen = useRef<ExperimentId | null>(null);
   const buttons = useRef<Partial<Record<ExperimentId, HTMLButtonElement | null>>>({});
   const allDone = EXPERIMENTS.every((id) => visited.includes(id));
-  const open = current === null;
+  const open = current === null && !computer;
 
   // Returning from an experiment: put keyboard focus back on its menu entry.
   useEffect(() => {
@@ -36,6 +37,13 @@ export function LabOverlay() {
             <p className={allDone ? 'text-cyan' : 'font-medium text-white'}>
               {allDone ? ENDING : WELCOME.prompt}
             </p>
+            <button
+              type="button"
+              onClick={() => useLab.getState().showComputer()}
+              className="pointer-events-auto mt-1 rounded-full text-sm font-medium text-amber-300 underline decoration-amber-300/40 underline-offset-4 hover:text-amber-200 md:text-base"
+            >
+              {COMPUTER.open}
+            </button>
             <p className="sr-only">{LAB_ALT}</p>
           </div>
         )}

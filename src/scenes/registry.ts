@@ -29,4 +29,8 @@ export const SCENES: Record<ExperimentId, SceneEntry> = {
     Scene: lazy(() => import('./Entanglement/Scene')),
     Controls: lazy(() => import('./Entanglement/Controls')),
   },
+  search: {
+    Scene: lazy(() => import('./Search/Scene')),
+    Controls: lazy(() => import('./Search/Controls')),
+  },
 };
