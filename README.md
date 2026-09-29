@@ -30,7 +30,7 @@ npm run build      # static site in dist/
 Playwright uses Chromium; set `PW_CHROMIUM` to a local Chromium binary if it is not at `/opt/pw-browsers/chromium`.
 
 URL flags: `?debug` shows an fps / draw-call overlay; `?fx=0` disables post-processing; `?room=0` hides the lab room
-around the tables. Links such as `/#qubits` open an experiment directly, and the browser's Back button returns to the lab.
+around the tables; `?cam=x,y,z,lookX,lookY,lookZ` pins the camera for close-up screenshots. Links such as `/#qubits` open an experiment directly, and the browser's Back button returns to the lab.
 
 ## Deploying (GitHub Pages)
 
@@ -80,7 +80,8 @@ src/physics                pure, dependency-free, unit-tested TypeScript
 - **`src/scenes/<Name>/`**: `Scene.tsx` (the model on its table; idles in the lab, interactive when open),
   `Controls.tsx`, a Zustand store, and any pure per-frame engine with tests. Registered in `src/scenes/registry.ts`.
 - **`src/three/`**: canvas root, lab room (`Lab.tsx`), table layout and camera poses (`tables.ts`), `LabCamera`,
-  `room/` (the quantum-computing lab: cryostats, control racks, walls, floor), effects, shaders.
+  `room/` (the quantum-computing lab: procedural cryostats, control racks, walls and floor, with
+  physically based metals reflecting a baked lab environment), effects, shaders.
 - **`src/content/experiments.ts`** (English) and **`experiments.he.ts`** (Hebrew): all copy. A test checks lengths
   in both languages, renders every equation with KaTeX, and rejects consciousness-causes-collapse phrasing.
 - **`src/content/i18n.ts`**: interface strings (buttons, labels, results) per language, plus `useUi()` / `useContent()`.

@@ -24,7 +24,8 @@ Zustand · Tailwind CSS v4 · KaTeX · custom GLSL · Vitest · Web Workers · P
 Visual check: `npm run build && npx vite preview --port 4173 &` then
 `node scripts/shoot.mjs http://localhost:4173 test-results/shots <lab|basics|superposition|qubits|entanglement…> [--mobile]`.
 Env: `WAIT` ms per shot, `Q='&fx=0'` appends URL params, `EVAL` runs page JS (e.g. `$(cat scripts/set-range.js); __setRange('Emission rate', 100)`).
-URL flags: `?debug` (fps / draw calls overlay, `window.__quantumPerf`), `?fx=0` (no post-processing), `?room=0` (no room).
+URL flags: `?debug` (fps / draw calls overlay, `window.__quantumPerf`), `?fx=0` (no post-processing), `?room=0` (no room),
+`?cam=x,y,z,lookX,lookY,lookZ` (pin the camera for close-up shots, e.g. of the cryostats).
 Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `playwright install`.
 
 ## Verification gate (every change)

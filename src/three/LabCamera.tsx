@@ -14,6 +14,13 @@ const targetLook = new Vector3();
 const prevPos = new Vector3();
 const offset = { x: 0, y: 0 };
 
+/** Debug: `?cam=x,y,z,lookX,lookY,lookZ` pins the camera (for close-up screenshots). */
+const pinned = (() => {
+  if (typeof location === 'undefined') return null;
+  const v = new URLSearchParams(location.search).get('cam')?.split(',').map(Number);
+  return v?.length === 6 && v.every(Number.isFinite) ? v : null;
+})();
+
 /**
  * Where the scene should sit on screen, as a view offset in pixels: with an experiment open
  * the card covers the left side (right side in Hebrew) on wide screens or the bottom on phones,
@@ -50,6 +57,10 @@ export function LabCamera() {
     else {
       targetPos.set(...OVERVIEW.camera);
       targetLook.set(...OVERVIEW.look);
+    }
+    if (pinned) {
+      targetPos.set(pinned[0], pinned[1], pinned[2]);
+      targetLook.set(pinned[3], pinned[4], pinned[5]);
     }
     // Back off along the view direction on narrow screens.
     targetPos.sub(targetLook).multiplyScalar(f.distance).add(targetLook);
