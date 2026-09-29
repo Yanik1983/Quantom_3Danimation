@@ -1,6 +1,9 @@
-varying float vH;
+attribute float aId;
+varying vec2 vUv;
+varying float vId;
 
 void main() {
-  vH = uv.y;
+  vUv = uv;
+  vId = aId;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }

@@ -29,8 +29,8 @@ npm run build      # static site in dist/
 
 Playwright uses Chromium; set `PW_CHROMIUM` to a local Chromium binary if it is not at `/opt/pw-browsers/chromium`.
 
-URL flags: `?debug` shows an fps / draw-call overlay; `?fx=0` disables post-processing; `?sky=0` disables the starry
-backdrop. Links such as `/#qubits` open an experiment directly, and the browser's Back button returns to the lab.
+URL flags: `?debug` shows an fps / draw-call overlay; `?fx=0` disables post-processing; `?room=0` hides the lab room
+around the tables. Links such as `/#qubits` open an experiment directly, and the browser's Back button returns to the lab.
 
 ## Deploying (GitHub Pages)
 
@@ -80,7 +80,7 @@ src/physics                pure, dependency-free, unit-tested TypeScript
 - **`src/scenes/<Name>/`**: `Scene.tsx` (the model on its table; idles in the lab, interactive when open),
   `Controls.tsx`, a Zustand store, and any pure per-frame engine with tests. Registered in `src/scenes/registry.ts`.
 - **`src/three/`**: canvas root, lab room (`Lab.tsx`), table layout and camera poses (`tables.ts`), `LabCamera`,
-  backdrop, effects, shaders.
+  `room/` (the quantum-computing lab: cryostats, control racks, walls, floor), effects, shaders.
 - **`src/content/experiments.ts`**: all copy. A test checks lengths, renders every equation with KaTeX, and rejects
   consciousness-causes-collapse phrasing.
 

@@ -4,7 +4,6 @@ export const TIERS: readonly Tier[] = ['low', 'medium', 'high'];
 export interface TierParams {
   /** Device-pixel-ratio clamp passed to the Canvas. */
   dpr: [number, number];
-  stars: number;
   bloom: boolean;
   chromatic: boolean;
   depthOfField: boolean;
@@ -19,7 +18,6 @@ export interface TierParams {
 export const TIER_PARAMS: Record<Tier, TierParams> = {
   low: {
     dpr: [0.75, 1],
-    stars: 900,
     bloom: true,
     chromatic: false,
     depthOfField: false,
@@ -29,7 +27,6 @@ export const TIER_PARAMS: Record<Tier, TierParams> = {
   },
   medium: {
     dpr: [1, 1.5],
-    stars: 2200,
     bloom: true,
     chromatic: true,
     depthOfField: false,
@@ -39,7 +36,6 @@ export const TIER_PARAMS: Record<Tier, TierParams> = {
   },
   high: {
     dpr: [1, 2],
-    stars: 4000,
     bloom: true,
     chromatic: true,
     depthOfField: true,

@@ -2,77 +2,26 @@ import { Html } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { Suspense, useRef } from 'react';
 import {
-  AdditiveBlending,
   CircleGeometry,
   Color,
   CylinderGeometry,
-  DoubleSide,
   MeshBasicMaterial,
-  PlaneGeometry,
   ShaderMaterial,
   TorusGeometry,
-  Vector2,
 } from 'three';
 import { COPY } from '../content/experiments';
 import { useDisposable } from '../hooks/useDisposable';
 import { SCENES } from '../scenes/registry';
 import { EXPERIMENTS, useLab, type ExperimentId } from '../state/lab';
-import floorVert from './shaders/lab/floor.vert.glsl?raw';
-import floorFrag from './shaders/lab/floor.frag.glsl?raw';
 import topVert from './shaders/lab/tabletop.vert.glsl?raw';
 import topFrag from './shaders/lab/tabletop.frag.glsl?raw';
-import pillarVert from './shaders/lab/pillar.vert.glsl?raw';
-import pillarFrag from './shaders/lab/pillar.frag.glsl?raw';
+import { LabRoom } from './room/LabRoom';
 import { FLOOR_Y, TABLE_RADIUS, TABLES } from './tables';
 
 const CYAN = new Color('#22e4ff');
-const VIOLET = new Color('#8b5cf6');
-const PILLARS = 9;
-
-function Floor() {
-  const geo = useDisposable(() => new PlaneGeometry(90, 90), []);
-  const mat = useDisposable(
-    () =>
-      new ShaderMaterial({
-        vertexShader: floorVert,
-        fragmentShader: floorFrag,
-        uniforms: { uColor: { value: VIOLET.clone() }, uCenter: { value: new Vector2(0, -3) } },
-        transparent: true,
-        depthWrite: false,
-      }),
-    [],
-  );
-  return <mesh geometry={geo} material={mat} rotation={[-Math.PI / 2, 0, 0]} position={[0, FLOOR_Y, 0]} />;
-}
-
-/** Soft columns of light around the back of the room. */
-function Pillars() {
-  const geo = useDisposable(() => new PlaneGeometry(0.28, 11).translate(0, 5.5, 0), []);
-  const mat = useDisposable(
-    () =>
-      new ShaderMaterial({
-        vertexShader: pillarVert,
-        fragmentShader: pillarFrag,
-        uniforms: { uColor: { value: VIOLET.clone().multiplyScalar(0.45) } },
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        side: DoubleSide,
-      }),
-    [],
-  );
-  const items = Array.from({ length: PILLARS }, (_, i) => {
-    const a = Math.PI * (0.12 + (0.76 * i) / (PILLARS - 1));
-    return { x: -Math.cos(a) * 24, z: -4 - Math.sin(a) * 15, yaw: Math.PI / 2 - a };
-  });
-  return (
-    <>
-      {items.map((p, i) => (
-        <mesh key={i} geometry={geo} material={mat} position={[p.x, FLOOR_Y, p.z]} rotation={[0, p.yaw, 0]} />
-      ))}
-    </>
-  );
-}
+/** Debug switch for profiling: ?room=0 hides the room around the tables. */
+const roomEnabled =
+  typeof location === 'undefined' || new URLSearchParams(location.search).get('room') !== '0';
 
 function TableLabel({ id, index }: { id: ExperimentId; index: number }) {
   const current = useLab((s) => s.current);
@@ -173,12 +122,11 @@ function Table({ id, index }: { id: ExperimentId; index: number }) {
   );
 }
 
-/** The glowing lab: a floor grid, light columns, and one instrument table per experiment. */
+/** The lab: the quantum-computing room and one instrument table per experiment. */
 export function Lab() {
   return (
     <>
-      <Floor />
-      <Pillars />
+      {roomEnabled && <LabRoom />}
       {EXPERIMENTS.map((id, i) => (
         <Table key={id} id={id} index={i} />
       ))}

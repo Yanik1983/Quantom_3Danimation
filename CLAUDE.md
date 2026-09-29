@@ -24,7 +24,7 @@ Zustand · Tailwind CSS v4 · KaTeX · custom GLSL · Vitest · Web Workers · P
 Visual check: `npm run build && npx vite preview --port 4173 &` then
 `node scripts/shoot.mjs http://localhost:4173 test-results/shots <lab|basics|superposition|qubits|entanglement…> [--mobile]`.
 Env: `WAIT` ms per shot, `Q='&fx=0'` appends URL params, `EVAL` runs page JS (e.g. `$(cat scripts/set-range.js); __setRange('Emission rate', 100)`).
-URL flags: `?debug` (fps / draw calls overlay, `window.__quantumPerf`), `?fx=0` (no post-processing), `?sky=0` (no backdrop).
+URL flags: `?debug` (fps / draw calls overlay, `window.__quantumPerf`), `?fx=0` (no post-processing), `?room=0` (no room).
 Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `playwright install`.
 
 ## Verification gate (every change)
@@ -42,7 +42,7 @@ Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `pla
 - `src/content/experiments.ts` — all copy: name, title, short text (35–70 words, no equations), Learn more (equations +
   ≤ 110 words), alt text; plus welcome / ending lines.
 - `src/three/` — canvas root, `Lab.tsx` (room + tables), `tables.ts` (table positions + close-up camera poses),
-  `LabCamera.tsx`, backdrop, effects, GLSL in `shaders/`.
+  `LabCamera.tsx`, `room/` (the quantum-computing lab around the tables), effects, GLSL in `shaders/`.
 - `src/ui/` — `LabOverlay` (welcome + menu/tiles), `ExperimentCard` (+ `LearnMore`), settings, controls primitives.
 
 ### Adding an experiment (consult the user first — they asked for exactly four)

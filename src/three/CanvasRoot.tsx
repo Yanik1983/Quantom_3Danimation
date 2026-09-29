@@ -1,6 +1,5 @@
 import { Canvas } from '@react-three/fiber';
 import { useTierParams } from '../state/settings';
-import { Backdrop } from './Backdrop';
 import { Effects } from './Effects';
 import { Lab } from './Lab';
 import { LabCamera } from './LabCamera';
@@ -9,9 +8,8 @@ import { QualityGovernor } from './QualityGovernor';
 import { OVERVIEW } from './tables';
 
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
-/** Debug switches for profiling: ?fx=0 disables post-processing, ?sky=0 the backdrop. */
+/** Debug switch for profiling: ?fx=0 disables post-processing. */
 const fxEnabled = params?.get('fx') !== '0';
-const skyEnabled = params?.get('sky') !== '0';
 
 export function CanvasRoot() {
   const { dpr } = useTierParams();
@@ -25,7 +23,6 @@ export function CanvasRoot() {
         <color attach="background" args={['#05060a']} />
         <QualityGovernor />
         <LabCamera />
-        {skyEnabled && <Backdrop />}
         <Lab />
         {fxEnabled && <Effects />}
         <PerfProbe />

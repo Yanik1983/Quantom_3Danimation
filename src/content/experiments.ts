@@ -28,7 +28,7 @@ export const ENDING =
   "That's quantum physics: waves, mixes, qubits and links. The same rules power lasers, MRI scanners and quantum computers.";
 
 export const LAB_ALT =
-  'A dark laboratory with four glowing tables, one per experiment: a particle gun firing at two slits, a glowing particle spread across two boxes, an arrow on a sphere, and two linked particles flying apart.';
+  'A dim quantum-computing laboratory with four glowing tables, one per experiment: a particle gun firing at two slits, a glowing particle spread across two boxes, an arrow on a sphere, and two linked particles flying apart. Behind them stand a gold dilution refrigerator, a closed cryostat and racks of blinking control electronics.';
 
 export const COPY: Record<ExperimentId, ExperimentCopy> = {
   basics: {
