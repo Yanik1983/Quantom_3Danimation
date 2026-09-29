@@ -19,16 +19,16 @@ describe('entangled pair engine', () => {
     expect(e.pairs).toBe(1);
   });
 
-  it('always gives opposite results, each side a fair coin', () => {
+  it('always gives matching results, each side a fair coin', () => {
     const e = new PairEngine(mulberry32(42));
     const n = 4000;
     e.request(n, 0);
     const measured = run(e, n * BATCH_SPACING + FLIGHT_FAST + 1);
     expect(measured).toBe(n);
     expect(e.pairs).toBe(n);
-    expect(e.opposite).toBe(n);
+    expect(e.matched).toBe(n);
     const sigma = Math.sqrt(0.25 / n);
-    expect(Math.abs(e.leftUp / n - 0.5)).toBeLessThan(4 * sigma);
+    expect(Math.abs(e.leftZero / n - 0.5)).toBeLessThan(4 * sigma);
   });
 
   it('a batch of 100 finishes within a few seconds', () => {

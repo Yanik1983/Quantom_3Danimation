@@ -1,14 +1,14 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
-const VIEWS = ['', 'basics', 'superposition', 'qubits', 'entanglement', 'search', 'computer'];
+const VIEWS = ['', 'basics', 'qubits', 'entanglement', 'search', 'computer', 'finale'];
 const LABELS = {
-  en: { controls: 'Experiment controls', learnMore: 'Learn more', menu: 'Experiments' },
-  he: { controls: 'פקדי הניסוי', learnMore: 'לקריאה נוספת', menu: 'ניסויים' },
+  en: { controls: 'Experiment controls', learnMore: 'Learn more', menu: 'Steps' },
+  he: { controls: 'פקדי הניסוי', learnMore: 'לקריאה נוספת', menu: 'שלבים' },
 };
 const RUNS = [
   ...VIEWS.map((id) => ({ id, lang: 'en' as const })),
-  ...['', 'superposition', 'search'].map((id) => ({ id, lang: 'he' as const })),
+  ...['', 'qubits', 'search', 'finale'].map((id) => ({ id, lang: 'he' as const })),
 ];
 
 for (const { id, lang } of RUNS) {
@@ -17,7 +17,7 @@ for (const { id, lang } of RUNS) {
     const l = LABELS[lang];
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(`/?lang=${lang}${id ? `#${id}` : ''}`);
-    if (id === 'computer') {
+    if (id === 'computer' || id === 'finale') {
       await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
     } else if (id) {
       await expect(page.getByRole('group', { name: l.controls }).getByRole('button').first()).toBeVisible({

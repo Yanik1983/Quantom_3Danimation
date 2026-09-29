@@ -14,23 +14,25 @@ const UI_EN = {
   /** The switch shows the other language, in that language. */
   switchTo: { label: 'עברית', lang: 'he' as Lang, aria: 'Switch to Hebrew' },
 
-  experimentOf: (i: number, n: number, name: string) => `Experiment ${i} of ${n} · ${name}`,
+  stepOf: (i: number, n: number) => `Step ${i} of ${n}`,
   experimentControls: 'Experiment controls',
   loading: 'Loading…',
-  experimentNavigation: 'Experiment navigation',
+  experimentNavigation: 'Step navigation',
   backToLab: '← Back to lab',
   previous: 'Previous',
-  previousAria: 'Previous experiment',
-  next: 'Next',
-  nextAria: 'Next experiment',
+  previousAria: 'Previous step',
+  nextTo: (name: string) => `Next: ${name}`,
   finish: 'Finish',
-  finishAria: 'Finish and return to the lab',
-  experiments: 'Experiments',
+  finishAria: 'Finish and see what you learned',
+  experiments: 'Steps',
   visited: '(visited)',
   learnMore: 'Learn more',
-  inComputer: 'In a quantum computer',
+  tryIt: 'Try it',
+  whatYouSaw: 'What you saw',
+  inComputer: 'In the quantum computer',
   closeComputer: '← Back to lab',
   computerLabel: 'The quantum computer',
+  finaleLabel: 'What you learned',
 
   settings: 'Settings',
   visualQuality: 'Visual quality',
@@ -43,61 +45,68 @@ const UI_EN = {
   settingsNote:
     'Auto quality watches your frame rate and adjusts particle counts and effects. Reduced motion replaces camera glides with cuts; experiments stay interactive.',
 
-  // What is quantum physics? (double slit)
-  zoom: 'Zoom',
-  zoomStages: ['a grain of sand', 'atoms inside the grain', 'one atom'] as readonly [string, string, string],
+  // Step 1: waves (double slit)
   simError: 'The simulation could not start in this browser.',
   preparing: 'Preparing the simulation…',
   stopFiring: 'Stop firing',
-  fire: 'Fire particles',
-  watchSlits: 'Watch the slits',
+  fire: 'Fire',
+  detectors: 'Detectors on the slits',
   landed: (n: number) => `${n} particles have landed.`,
-  watchedDesc: 'Detectors watch the slits: the dots form one smooth band, with no stripes.',
-  unwatchedDesc: 'The slits are not watched: the dots build up bright and dark stripes.',
+  sawLanding: 'Dots are landing one by one, each at a random place. Keep watching…',
+  sawStripes:
+    'Stripes! Each particle passes through **both slits** like a wave. Where the two waves meet they **add up** (bright) or **cancel** (dark), like noise-cancelling headphones.',
+  sawDetectorsReady:
+    'The detectors will record which slit each particle takes. Press **Fire** to see what changes.',
+  sawDetecting: 'The detectors record which slit each particle takes. Keep firing…',
+  sawNoStripes:
+    'The stripes are gone: just one smooth band. Detecting the path **disturbs the waves**, so they no longer cancel.',
 
-  // Superposition
-  leftRight: 'Left ↔ Right',
-  leftRightValue: (l: string, r: string) => `${l} left · ${r} right`,
-  look: 'Look',
-  lookMany: (n: number) => `Look ${n} times`,
-  found: (box: 'left' | 'right') => `Found in the **${box}** box.`,
-  tally: (l: number, r: number) => `Left box: **${l}** · Right box: **${r}**`,
-  mixDesc: (l: string, r: string) => `The particle is a mix: ${l} chance left, ${r} chance right.`,
-
-  // Qubits
+  // Step 2: qubits
   mix01: 'Mix of 0 and 1',
-  mix01Value: (p0: string, p1: string) => `${p0} of 0 · ${p1} of 1`,
+  mix01Value: (p0: string, p1: string) => `${p0} 0 · ${p1} 1`,
   measure: 'Measure',
-  qubitCount: 'Number of qubits',
-  qubitCountValue: (n: number, p: number) => `${n} → ${p} possibilities`,
-  result: 'Result:',
-  holds: (n: number, p: number) =>
-    `${n} ${n === 1 ? 'qubit holds' : 'qubits hold'} ${p} possibilities at once.`,
+  measureTimes: (n: number) => `Measure ${n} times`,
+  qubitCount: 'Qubits',
+  qubitCountValue: (n: number, p: number) => `${n} → ${p} possible results`,
+  addQubit: 'Add a qubit',
+  removeQubit: 'Remove a qubit',
+  sawOne: (bit: number) =>
+    `Result: **${bit}**. The cloud is gone: measuring found the particle in one box. Measure again, and the result is random.`,
+  sawMany: (bits: string, p: number) =>
+    `Result: **${bits}**. Each qubit gave one bit, so together they gave just one of the ${p} possible results.`,
+  sawTally: (zeros: number, ones: number) =>
+    `0 came up **${zeros}** times and 1 came up **${ones}** times: the mix sets the chances, but each result is random.`,
+  sawSpread: (kinds: number, p: number, top: string, times: number) =>
+    `100 measurements gave **${kinds}** different results out of ${p} possible; the most common was **${top}** (${times} times). Each measurement gave just one.`,
+  sawDoubling: (n: number, p: number) =>
+    `${n} qubits make a mix of **${p}** possible results at once. Each extra qubit doubles it: 50 qubits make more than a million billion.`,
 
-  // Entanglement
+  // Step 3: linked qubits
   measurePair: 'Measure a pair',
-  measureMany: (n: number) => `Measure ${n} pairs`,
-  up: '↑ up',
-  down: '↓ down',
-  pairResult: (l: string, r: string) => `Left: **${l}** · Right: **${r}**`,
-  opposite: (o: number, p: number) => `Opposite: **${o}** of ${p}`,
-  leftWas: (up: number, down: number) => {
-    const times = (n: number) => `${n} ${n === 1 ? 'time' : 'times'}`;
-    return `(left was up ${times(up)}, down ${times(down)})`;
-  },
+  measurePairs: (n: number) => `Measure ${n} pairs`,
+  sawFirstPair: (l: number, r: number) =>
+    `Left: **${l}** · Right: **${r}**. ${l === r ? 'The same!' : 'Different.'} Try again: each result is random.`,
+  sawPairs: (m: number, p: number, zeros: number) =>
+    `**${m} of ${p}** pairs matched, yet each result was random (the left one read 0 ${zeros} ${zeros === 1 ? 'time' : 'times'} and 1 ${p - zeros} ${p - zeros === 1 ? 'time' : 'times'}).`,
+  sawGloves:
+    'Isn’t that like a pair of gloves, decided in advance? No: experiments that won the 2022 Nobel Prize showed that the results are not decided before measuring.',
 
-  // A tiny quantum computer (Grover search)
-  searchSteps: ['Spread out', 'Mark the card', 'Interfere', 'Measure'] as readonly string[],
+  // Step 4: find the card
+  liftCup: (cup: string) => `Lift cup ${cup}`,
+  sawEmpty: (tries: number) => `Empty (${tries} ${tries === 1 ? 'try' : 'tries'} so far). Lift another cup.`,
+  sawClassicFound: (tries: number) =>
+    `Found on try **${tries}**! Checking one cup at a time can take up to 4 tries, and a normal computer has to check one by one too.`,
+  startQuantum: 'Now let the quantum computer try',
+  searchSteps: ['Spread', 'Mark', 'Cancel', 'Measure'] as readonly string[],
   searchStep: (i: number, name: string) => `Step ${i}: ${name}`,
   hideNew: 'Hide a new card',
   searchInfo: [
-    'The 2 qubits start at 00. The card is hidden under one of the cups.',
-    'Now every cup has the same chance: 25%.',
-    'The oracle gave the right cup a minus sign. Its chance is still 25%, so looking now would not help.',
-    'Interference: the minus sign makes that cup grow to 100% and the others shrink to 0%.',
+    'A new card is hidden. The 2 qubits start at 00. The bars above the cups will show each cup’s wave.',
+    '**Spread** (trick 2): the qubits are now a mix of all four cups. Each cup has a 25% chance.',
+    '**Mark** (trick 3): the right cup’s wave is flipped upside down. Its chance is still 25%, so the card is still hidden. This step links the two qubits.',
+    '**Cancel** (trick 1): the waves combine. The wrong cups cancel to 0% and the right cup grows to 100%.',
   ] as readonly string[],
-  searchFound: (cup: string) =>
-    `Found under cup **${cup}** in one go. A normal computer, checking one cup at a time, needs up to 3 tries.`,
+  searchFound: (cup: string) => `Found under cup **${cup}** in one look!`,
   searchChances: (list: string) => `Chances: ${list}.`,
 };
 
@@ -109,23 +118,25 @@ const UI_HE: UiStrings = {
   documentTitle: 'המעבדה הקוונטית: איך עובד מחשב קוונטי, בפשטות',
   switchTo: { label: 'English', lang: 'en', aria: 'החלפה לאנגלית' },
 
-  experimentOf: (i, n, name) => `ניסוי ${i} מתוך ${n} · ${name}`,
+  stepOf: (i, n) => `שלב ${i} מתוך ${n}`,
   experimentControls: 'פקדי הניסוי',
   loading: 'טוען…',
-  experimentNavigation: 'ניווט בין הניסויים',
+  experimentNavigation: 'ניווט בין השלבים',
   backToLab: '→ חזרה למעבדה',
   previous: 'הקודם',
-  previousAria: 'הניסוי הקודם',
-  next: 'הבא',
-  nextAria: 'הניסוי הבא',
+  previousAria: 'השלב הקודם',
+  nextTo: (name) => `הבא: ${name}`,
   finish: 'סיום',
-  finishAria: 'סיום וחזרה למעבדה',
-  experiments: 'ניסויים',
+  finishAria: 'סיום, וסיכום של מה שלמדתם',
+  experiments: 'שלבים',
   visited: '(הושלם)',
   learnMore: 'לקריאה נוספת',
-  inComputer: 'במחשב קוונטי',
+  tryIt: 'נסו',
+  whatYouSaw: 'מה ראיתם',
+  inComputer: 'במחשב הקוונטי',
   closeComputer: '→ חזרה למעבדה',
   computerLabel: 'המחשב הקוונטי',
+  finaleLabel: 'מה למדתם',
 
   settings: 'הגדרות',
   visualQuality: 'איכות תצוגה',
@@ -138,56 +149,62 @@ const UI_HE: UiStrings = {
   settingsNote:
     'איכות אוטומטית עוקבת אחרי קצב הפריימים ומתאימה את מספר החלקיקים ואת האפקטים. תנועה מופחתת מחליפה את תנועות המצלמה במעברים מיידיים; הניסויים נשארים אינטראקטיביים.',
 
-  zoom: 'זום',
-  zoomStages: ['גרגר חול', 'אטומים בתוך הגרגר', 'אטום אחד'],
   simError: 'לא ניתן להפעיל את הסימולציה בדפדפן הזה.',
   preparing: 'מכין את הסימולציה…',
   stopFiring: 'הפסקת ירי',
-  fire: 'ירי חלקיקים',
-  watchSlits: 'צפייה בסדקים',
+  fire: 'ירי',
+  detectors: 'גלאים בסדקים',
   landed: (n) => `${n} חלקיקים נחתו.`,
-  watchedDesc: 'גלאים צופים בסדקים: הנקודות יוצרות פס חלק אחד, בלי פסים.',
-  unwatchedDesc: 'אין צפייה בסדקים: הנקודות בונות פסים בהירים וכהים.',
-
-  leftRight: 'שמאל ↔ ימין',
-  leftRightValue: (l, r) => `שמאל ${l} · ימין ${r}`,
-  look: 'הסתכלו',
-  lookMany: (n) => `הסתכלו ${n} פעמים`,
-  found: (box) => `נמצא בקופסה ה**${box === 'left' ? 'שמאלית' : 'ימנית'}**.`,
-  tally: (l, r) => `קופסה שמאלית: **${l}** · קופסה ימנית: **${r}**`,
-  mixDesc: (l, r) => `החלקיק בערבוב: סיכוי של ${l} לשמאל ושל ${r} לימין.`,
+  sawLanding: 'נקודות נוחתות אחת אחרי השנייה, כל אחת במקום אקראי. המשיכו לצפות…',
+  sawStripes:
+    'פסים! כל חלקיק עובר דרך **שני הסדקים** כמו גל. איפה ששני הגלים נפגשים הם **מתחזקים** (בהיר) או **מבטלים זה את זה** (כהה), כמו אוזניות מבטלות רעשים.',
+  sawDetectorsReady: 'הגלאים ירשמו דרך איזה סדק עובר כל חלקיק. לחצו על **ירי** כדי לראות מה משתנה.',
+  sawDetecting: 'הגלאים רושמים דרך איזה סדק עובר כל חלקיק. המשיכו לירות…',
+  sawNoStripes: 'הפסים נעלמו: נשאר פס חלק אחד. זיהוי המסלול **מפריע לגלים**, ולכן הם כבר לא מבטלים זה את זה.',
 
   mix01: 'ערבוב של 0 ו־1',
   mix01Value: (p0, p1) => `${p0} ל־0 · ${p1} ל־1`,
   measure: 'מדדו',
-  qubitCount: 'מספר קיוביטים',
-  qubitCountValue: (n, p) => `${n} ← ${p} אפשרויות`,
-  result: 'תוצאה:',
-  holds: (n, p) =>
-    n === 1 ? `קיוביט אחד מחזיק ${p} אפשרויות בבת אחת.` : `${n} קיוביטים מחזיקים ${p} אפשרויות בבת אחת.`,
+  measureTimes: (n) => `מדדו ${n} פעמים`,
+  qubitCount: 'קיוביטים',
+  qubitCountValue: (n, p) => `${n} ← ${p} תוצאות אפשריות`,
+  addQubit: 'הוספת קיוביט',
+  removeQubit: 'הסרת קיוביט',
+  sawOne: (bit) =>
+    `תוצאה: **${bit}**. הענן נעלם: המדידה מצאה את החלקיק בקופסה אחת. מדדו שוב, והתוצאה אקראית.`,
+  sawMany: (bits, p) =>
+    `תוצאה: **${bits}**. כל קיוביט נתן ביט אחד, כך שיחד הם נתנו רק אחת מתוך ${p} התוצאות האפשריות.`,
+  sawTally: (zeros, ones) =>
+    `0 יצא **${zeros}** פעמים ו־1 יצא **${ones}** פעמים: הערבוב קובע את הסיכויים, אבל כל תוצאה אקראית.`,
+  sawSpread: (kinds, p, top, times) =>
+    `100 מדידות נתנו **${kinds}** תוצאות שונות מתוך ${p} אפשריות; השכיחה ביותר הייתה **${top}** (${times} פעמים). כל מדידה נתנה תוצאה אחת בלבד.`,
+  sawDoubling: (n, p) =>
+    `${n} קיוביטים יוצרים ערבוב של **${p}** תוצאות אפשריות בבת אחת. כל קיוביט נוסף מכפיל את זה: 50 קיוביטים יוצרים יותר ממיליון מיליארד.`,
 
   measurePair: 'מדדו זוג',
-  measureMany: (n) => `מדדו ${n} זוגות`,
-  up: '↑ למעלה',
-  down: '↓ למטה',
-  pairResult: (l, r) => `שמאל: **${l}** · ימין: **${r}**`,
-  opposite: (o, p) => `הפוכים: **${o}** מתוך ${p}`,
-  leftWas: (up, down) => {
-    const times = (n: number) => (n === 1 ? 'פעם אחת' : `${n} פעמים`);
-    return `(השמאלי היה למעלה ${times(up)}, ולמטה ${times(down)})`;
-  },
+  measurePairs: (n) => `מדדו ${n} זוגות`,
+  sawFirstPair: (l, r) =>
+    `שמאל: **${l}** · ימין: **${r}**. ${l === r ? 'אותו דבר!' : 'שונים.'} נסו שוב: כל תוצאה אקראית.`,
+  sawPairs: (m, p, zeros) =>
+    `**${m} מתוך ${p}** זוגות היו שווים, ובכל זאת כל תוצאה הייתה אקראית (השמאלי קרא 0 ${zeros === 1 ? 'פעם אחת' : `${zeros} פעמים`} ו־1 ${p - zeros === 1 ? 'פעם אחת' : `${p - zeros} פעמים`}).`,
+  sawGloves:
+    'זה לא כמו זוג כפפות, שנקבע מראש? לא: ניסויים שזכו בפרס נובל לשנת 2022 הראו שהתוצאות לא נקבעות לפני המדידה.',
 
-  searchSteps: ['פיזור', 'סימון הקלף', 'התאבכות', 'מדידה'],
+  liftCup: (cup) => `הרימו את כוס ${cup}`,
+  sawEmpty: (tries) => `ריק (${tries === 1 ? 'ניסיון אחד' : `${tries} ניסיונות`} עד עכשיו). הרימו כוס אחרת.`,
+  sawClassicFound: (tries) =>
+    `נמצא בניסיון **${tries}**! בדיקה של כוס אחת בכל פעם יכולה לדרוש עד 4 ניסיונות, וגם מחשב רגיל חייב לבדוק אחת אחרי השנייה.`,
+  startQuantum: 'עכשיו תנו למחשב הקוונטי לנסות',
+  searchSteps: ['פיזור', 'סימון', 'ביטול', 'מדידה'],
   searchStep: (i, name) => `שלב ${i}: ${name}`,
   hideNew: 'הסתירו קלף חדש',
   searchInfo: [
-    'שני הקיוביטים מתחילים ב־00. הקלף מוסתר מתחת לאחת הכוסות.',
-    'עכשיו לכל כוס אותו סיכוי: 25%.',
-    'האורקל נתן לכוס הנכונה סימן מינוס. הסיכוי שלה עדיין 25%, ולכן הסתכלות עכשיו לא הייתה עוזרת.',
-    'התאבכות: סימן המינוס גורם לכוס הזו לגדול ל־100% ולאחרות להתכווץ ל־0%.',
+    'קלף חדש הוסתר. שני הקיוביטים מתחילים ב־00. העמודות מעל הכוסות יראו את הגל של כל כוס.',
+    '**פיזור** (טריק 2): הקיוביטים הם עכשיו ערבוב של כל ארבע הכוסות. לכל כוס סיכוי של 25%.',
+    '**סימון** (טריק 3): הגל של הכוס הנכונה מתהפך. הסיכוי שלה עדיין 25%, כך שהקלף עדיין מוסתר. השלב הזה מקשר בין שני הקיוביטים.',
+    '**ביטול** (טריק 1): הגלים מתחברים. הכוסות השגויות מתבטלות ל־0% והכוס הנכונה גדלה ל־100%.',
   ],
-  searchFound: (cup) =>
-    `נמצא מתחת לכוס **${cup}** בניסיון אחד. מחשב רגיל, שבודק כוס אחת בכל פעם, צריך עד 3 ניסיונות.`,
+  searchFound: (cup) => `נמצא מתחת לכוס **${cup}** במבט אחד!`,
   searchChances: (list) => `סיכויים: ${list}.`,
 };
 
@@ -197,7 +214,7 @@ export interface Content {
   COPY: typeof en.COPY;
   WELCOME: typeof en.WELCOME;
   COMPUTER: typeof en.COMPUTER;
-  ENDING: string;
+  FINALE: typeof en.FINALE;
   LAB_ALT: string;
 }
 

@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 
-export const EXPERIMENTS = ['basics', 'superposition', 'qubits', 'entanglement', 'search'] as const;
+export const EXPERIMENTS = ['basics', 'qubits', 'entanglement', 'search'] as const;
 export type ExperimentId = (typeof EXPERIMENTS)[number];
+
+/** Full-screen cards outside the experiments: the real machine, and the ending after step 4. */
+export type Panel = 'computer' | 'finale';
+const isPanel = (s: string): s is Panel => s === 'computer' || s === 'finale';
 
 export const isExperiment = (s: string): s is ExperimentId => (EXPERIMENTS as readonly string[]).includes(s);
 
@@ -12,10 +16,10 @@ interface LabState {
   visited: ExperimentId[];
   /** Table under the pointer in the 3D room (drives its glow). */
   hovered: ExperimentId | null;
-  /** True while the card about the quantum computer (the gold machine) is open. */
-  computer: boolean;
+  /** The card about the real quantum computer (the gold machine) or the finale, if open. */
+  panel: Panel | null;
   open(id: ExperimentId | null): void;
-  showComputer(): void;
+  show(panel: Panel): void;
   step(dir: 1 | -1): void;
   setHovered(id: ExperimentId | null): void;
 }
@@ -24,12 +28,12 @@ export const useLab = create<LabState>()((set, get) => ({
   current: null,
   visited: [],
   hovered: null,
-  computer: false,
+  panel: null,
   open: (current) => {
     const { visited } = get();
     set({
       current,
-      computer: false,
+      panel: null,
       hovered: null,
       visited: current && !visited.includes(current) ? [...visited, current] : visited,
     });
@@ -37,17 +41,19 @@ export const useLab = create<LabState>()((set, get) => ({
   step: (dir) => {
     const { current, open } = get();
     const i = current ? EXPERIMENTS.indexOf(current) + dir : 0;
-    open(i >= 0 && i < EXPERIMENTS.length ? EXPERIMENTS[i] : null);
+    // Past the last step comes the finale.
+    if (i === EXPERIMENTS.length) get().show('finale');
+    else open(i >= 0 && i < EXPERIMENTS.length ? EXPERIMENTS[i] : null);
   },
   setHovered: (hovered) => set({ hovered }),
-  showComputer: () => set({ current: null, computer: true, hovered: null }),
+  show: (panel) => set({ current: null, panel, hovered: null }),
 }));
 
-/** The view named in the URL hash: an experiment id, `computer`, or '' for the lab. */
-const viewOf = (s: Pick<LabState, 'current' | 'computer'>) => s.current ?? (s.computer ? 'computer' : '');
+/** The view named in the URL hash: an experiment id, `computer`, `finale`, or '' for the lab. */
+const viewOf = (s: Pick<LabState, 'current' | 'panel'>) => s.current ?? s.panel ?? '';
 
 /**
- * Keeps the URL hash in step with the open experiment (or `#computer`), so the browser's Back
+ * Keeps the URL hash in step with the open experiment (or `#computer` / `#finale`), so the browser's Back
  * button returns to the lab and links like `#qubits` open an experiment directly.
  */
 export function initLabHistory(): () => void {
@@ -55,7 +61,7 @@ export function initLabHistory(): () => void {
   const apply = (view: string) => {
     const lab = useLab.getState();
     if (view === viewOf(lab)) return;
-    if (view === 'computer') lab.showComputer();
+    if (isPanel(view)) lab.show(view);
     else lab.open(isExperiment(view) ? view : null);
   };
   apply(hash());

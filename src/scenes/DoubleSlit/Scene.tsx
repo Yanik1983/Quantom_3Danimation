@@ -47,7 +47,6 @@ import {
   TEX_W,
 } from './geometry';
 import { fireRate, IDLE_RATE, useDoubleSlit } from './store';
-import { ZoomLens } from './ZoomLens';
 
 const cfg = DEFAULT_DOUBLE_SLIT;
 const MASK_Z = simXToZ(cfg.maskX);
@@ -334,14 +333,11 @@ export default function DoubleSlitScene({ active }: SceneProps) {
 
   return (
     <group>
-      <group scale={TABLE_SCALE} position={[0.35, 0.02, 0]}>
+      <group scale={TABLE_SCALE} position={[0, 0.02, 0]}>
         <Mask />
         <ScreenPanel />
         <Emitter />
         {data && <Experiment data={data} active={active} />}
-      </group>
-      <group position={[-1.55, 2.45, -1.3]} rotation={[-0.3, 0.2, 0]} scale={0.62}>
-        <ZoomLens />
       </group>
     </group>
   );

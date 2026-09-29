@@ -1,24 +1,18 @@
 import { useUi } from '../../content/i18n';
-import { Button, LiveDescription, Slider, Toggle } from '../../ui/controls';
-import { useDoubleSlit } from './store';
-import { zoomLabel } from './zoom';
+import { Button, LiveDescription, Saw, Toggle } from '../../ui/controls';
+import { PATTERN_AT, useDoubleSlit } from './store';
 
 export default function DoubleSlitControls() {
   const s = useDoubleSlit();
   const t = useUi();
   const preparing = s.status === 'computing' || s.status === 'idle';
+  const clear = s.detected >= PATTERN_AT;
+  let saw: string | null = null;
+  if (s.measuring) saw = clear ? t.sawNoStripes : s.detected > 0 ? t.sawDetecting : t.sawDetectorsReady;
+  else if (s.detected > 0) saw = clear ? t.sawStripes : t.sawLanding;
 
   return (
     <>
-      <Slider
-        label={t.zoom}
-        min={0}
-        max={1}
-        step={0.01}
-        value={s.zoom}
-        onChange={s.setZoom}
-        format={(z) => zoomLabel(z, t.zoomStages)}
-      />
       {s.status === 'error' ? (
         <p role="alert" className="text-sm text-magenta">
           {t.simError}
@@ -28,10 +22,9 @@ export default function DoubleSlitControls() {
           {preparing ? t.preparing : s.firing ? t.stopFiring : t.fire}
         </Button>
       )}
-      <Toggle label={t.watchSlits} checked={s.measuring} onChange={s.setMeasuring} />
-      <LiveDescription>
-        {t.landed(s.detected)} {s.measuring ? t.watchedDesc : t.unwatchedDesc}
-      </LiveDescription>
+      <Toggle label={t.detectors} checked={s.measuring} onChange={s.setMeasuring} />
+      <Saw label={t.whatYouSaw} text={saw} />
+      <LiveDescription>{t.landed(s.detected)}</LiveDescription>
     </>
   );
 }

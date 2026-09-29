@@ -4,16 +4,16 @@ import { EXPERIMENTS, useLab, type ExperimentId } from '../state/lab';
 
 /** Lab overview: the welcome text and the experiment menu (large tiles on phones). */
 export function LabOverlay() {
-  const { COPY, COMPUTER, ENDING, LAB_ALT, WELCOME } = useContent();
+  const { COPY, FINALE, LAB_ALT, WELCOME } = useContent();
   const t = useUi();
   const current = useLab((s) => s.current);
-  const computer = useLab((s) => s.computer);
+  const panel = useLab((s) => s.panel);
   const visited = useLab((s) => s.visited);
   const hovered = useLab((s) => s.hovered);
   const lastOpen = useRef<ExperimentId | null>(null);
   const buttons = useRef<Partial<Record<ExperimentId, HTMLButtonElement | null>>>({});
   const allDone = EXPERIMENTS.every((id) => visited.includes(id));
-  const open = current === null && !computer;
+  const open = current === null && panel === null;
 
   // Returning from an experiment: put keyboard focus back on its menu entry.
   useEffect(() => {
@@ -34,16 +34,25 @@ export function LabOverlay() {
         {open && (
           <div className="animate-fade mx-auto mt-2 max-w-xl space-y-1.5 text-sm text-slate-300 md:mt-3 md:text-base">
             <p>{WELCOME.text}</p>
-            <p className={allDone ? 'text-cyan' : 'font-medium text-white'}>
-              {allDone ? ENDING : WELCOME.prompt}
-            </p>
-            <button
-              type="button"
-              onClick={() => useLab.getState().showComputer()}
-              className="pointer-events-auto mt-1 rounded-full text-sm font-medium text-amber-300 underline decoration-amber-300/40 underline-offset-4 hover:text-amber-200 md:text-base"
-            >
-              {COMPUTER.open}
-            </button>
+            <p className="text-slate-400">{WELCOME.time}</p>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => useLab.getState().open(EXPERIMENTS[0])}
+                className="pointer-events-auto rounded-full bg-gradient-to-r from-cyan/85 to-violet/85 px-7 py-2.5 font-display text-base font-semibold text-void shadow-[0_0_24px_rgba(34,228,255,0.35)] hover:brightness-110 md:text-lg"
+              >
+                {allDone ? FINALE.again : WELCOME.start}
+              </button>
+              {allDone && (
+                <button
+                  type="button"
+                  onClick={() => useLab.getState().show('finale')}
+                  className="pointer-events-auto rounded-full border border-cyan/50 bg-cyan/10 px-5 py-2.5 text-sm font-medium text-cyan hover:bg-cyan/20 md:text-base"
+                >
+                  {t.finaleLabel}
+                </button>
+              )}
+            </div>
             <p className="sr-only">{LAB_ALT}</p>
           </div>
         )}
@@ -54,6 +63,7 @@ export function LabOverlay() {
         hidden={!open}
         className="fixed inset-x-0 bottom-0 z-20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-5 md:px-6 md:pb-0"
       >
+        <p className="mb-2 text-center text-xs text-slate-400 md:text-sm">{WELCOME.choose}</p>
         <ol className="mx-auto grid max-w-md grid-cols-2 gap-2.5 md:flex md:max-w-none md:justify-center md:gap-2">
           {EXPERIMENTS.map((id, i) => {
             const done = visited.includes(id);

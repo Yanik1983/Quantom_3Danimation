@@ -6,6 +6,7 @@ import { CanvasRoot } from './three/CanvasRoot';
 import { ComputerCard } from './ui/ComputerCard';
 import { DebugOverlay } from './ui/DebugOverlay';
 import { ExperimentCard } from './ui/ExperimentCard';
+import { FinaleCard } from './ui/FinaleCard';
 import { Header } from './ui/Header';
 import { LabOverlay } from './ui/LabOverlay';
 
@@ -45,6 +46,7 @@ export function App() {
         <LabOverlay />
         <ExperimentCard />
         <ComputerCard />
+        <FinaleCard />
       </main>
       {debug && <DebugOverlay />}
     </>

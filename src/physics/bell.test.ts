@@ -9,6 +9,7 @@ import {
   MERMIN_CLASSICAL_MIN,
   MERMIN_QUANTUM,
   quantumCorrelation,
+  phiPlusOutcome,
   singletOutcome,
 } from './bell';
 import { mulberry32 } from './rng';
@@ -92,5 +93,23 @@ describe('Bell correlations', () => {
   it('angleDiff wraps into [0, π]', () => {
     expect(angleDiff(0, (3 * Math.PI) / 2)).toBeCloseTo(Math.PI / 2, 12);
     expect(angleDiff(-0.2, 0.2)).toBeCloseTo(0.4, 12);
+  });
+
+  it('Φ⁺ pairs: each side a fair coin, P(same) = cos²(Δ/2), always the same along one axis', () => {
+    const rng = mulberry32(21);
+    const n = 20_000;
+    for (const d of [0, Math.PI / 3, Math.PI / 2, Math.PI]) {
+      let same = 0;
+      let leftZero = 0;
+      for (let k = 0; k < n; k++) {
+        const [A, B] = phiPlusOutcome(0.2, 0.2 + d, rng);
+        if (A === B) same++;
+        if (A === 0) leftZero++;
+      }
+      const p = Math.cos(d / 2) ** 2;
+      const sigma = Math.sqrt((p * (1 - p)) / n);
+      expect(Math.abs(same / n - p)).toBeLessThanOrEqual(4 * sigma + 1e-12);
+      expect(Math.abs(leftZero / n - 0.5)).toBeLessThan(4 * Math.sqrt(0.25 / n));
+    }
   });
 });

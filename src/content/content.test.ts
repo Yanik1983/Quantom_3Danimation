@@ -12,11 +12,13 @@ const renders = (tex: string, displayMode: boolean) =>
 const FORBIDDEN = /conscious|observer'?s mind|awareness|human observ|someone (?:looks|watches)|תודע|מודעות/i;
 
 /** Hebrew packs prefixes into words, so the same text has fewer words than in English. */
-const MIN_WORDS = { en: 35, he: 30 } as const;
+const MIN_WORDS = { en: 20, he: 16 } as const;
+/** Main text before the first button: two or three sentences. */
+const MAX_WORDS = 45;
 
 for (const lang of ['en', 'he'] as const) {
   describe(`lab copy (${lang})`, () => {
-    const { COPY, WELCOME, ENDING } = CONTENT[lang];
+    const { COPY, WELCOME, FINALE } = CONTENT[lang];
     it('has one entry per experiment', () => {
       expect(Object.keys(COPY).sort()).toEqual([...EXPERIMENTS].sort());
     });
@@ -26,8 +28,15 @@ for (const lang of ['en', 'he'] as const) {
       describe(id, () => {
         it('keeps the main text short and equation-free', () => {
           expect(words(c.text)).toBeGreaterThanOrEqual(MIN_WORDS[lang]);
-          expect(words(c.text)).toBeLessThanOrEqual(70);
+          expect(words(c.text)).toBeLessThanOrEqual(MAX_WORDS);
           expect(c.text).not.toContain('$');
+        });
+
+        it('asks a question and says what to try, in a few short lines', () => {
+          expect(c.title.trim().endsWith('?')).toBe(true);
+          expect(c.tryIt.length).toBeGreaterThanOrEqual(1);
+          expect(c.tryIt.length).toBeLessThanOrEqual(3);
+          for (const line of c.tryIt) expect(words(line)).toBeLessThanOrEqual(12);
         });
 
         it('keeps "Learn more" brief', () => {
@@ -60,9 +69,18 @@ for (const lang of ['en', 'he'] as const) {
       expect(COMPUTER.text).not.toMatch(FORBIDDEN);
     });
 
-    it('has a short welcome and ending', () => {
-      expect(words(WELCOME.text)).toBeLessThanOrEqual(35);
-      expect(words(ENDING)).toBeLessThanOrEqual(25);
+    it('has a short welcome that states the goal', () => {
+      expect(words(WELCOME.text)).toBeLessThanOrEqual(40);
+    });
+
+    it('ends with the three tricks, uses, and a myth, in plain words', () => {
+      expect(FINALE.tricks).toHaveLength(3);
+      const all = [FINALE.together, FINALE.wont, FINALE.myth, ...FINALE.tricks, ...FINALE.uses];
+      for (const line of all) {
+        expect(words(line)).toBeLessThanOrEqual(40);
+        expect(line).not.toContain('$');
+        expect(line).not.toMatch(FORBIDDEN);
+      }
     });
   });
 }

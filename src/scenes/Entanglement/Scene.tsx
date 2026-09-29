@@ -6,8 +6,6 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
-  ConeGeometry,
-  CylinderGeometry,
   DynamicDrawUsage,
   EdgesGeometry,
   Group,
@@ -16,10 +14,13 @@ import {
   MeshBasicMaterial,
   Object3D,
   SphereGeometry,
+  Sprite,
+  SpriteMaterial,
 } from 'three';
 import { useDisposable } from '../../hooks/useDisposable';
 import { liveRng } from '../../lib/random';
 import { selectReducedMotion, useSettings } from '../../state/settings';
+import { textTexture } from '../../three/textSprite';
 import type { SceneProps } from '../registry';
 import { PairEngine, SLOTS } from './engine';
 import { useEntanglement } from './store';
@@ -31,33 +32,29 @@ const Y = 0.85;
 const IDLE_EVERY = 2.6;
 
 const dummy = new Object3D();
-const UP = new Color(0.1, 0.75, 1.1);
-const DOWN = new Color(1.1, 0.12, 0.6);
+/** Result colours: 0 is cyan, 1 is magenta (as the bits in the qubits experiment). */
+const ZERO = new Color(0.25, 1.3, 1.8);
+const ONE = new Color(1.8, 0.3, 1.1);
 
 function Detector({
   side,
-  arrow,
+  digit,
   lamp,
 }: {
   side: -1 | 1;
-  arrow: React.RefObject<Group | null>;
-  lamp: MeshBasicMaterial;
+  digit: React.RefObject<Sprite | null>;
+  lamp: SpriteMaterial;
 }) {
   const body = useDisposable(() => new BoxGeometry(0.5, 1.2, 0.8), []);
   const edges = useDisposable(() => new EdgesGeometry(body), [body]);
-  const shaft = useDisposable(() => new CylinderGeometry(0.05, 0.05, 0.42, 12).translate(0, -0.08, 0), []);
-  const head = useDisposable(() => new ConeGeometry(0.15, 0.24, 20).translate(0, 0.24, 0), []);
   const dark = useDisposable(() => new MeshBasicMaterial({ color: new Color('#0a0d1c') }), []);
   const rim = useDisposable(() => new LineBasicMaterial({ color: new Color(0.35, 0.3, 0.95) }), []);
   return (
     <group position={[side * (D + 0.28), Y, 0]}>
       <mesh geometry={body} material={dark} />
       <lineSegments geometry={edges} material={rim} />
-      {/* The result: an arrow on the detector's face, up or down. */}
-      <group ref={arrow} position={[-side * 0.05, 0, 0.47]}>
-        <mesh geometry={shaft} material={lamp} />
-        <mesh geometry={head} material={lamp} />
-      </group>
+      {/* The result: the bit this detector read, 0 or 1, on its face. */}
+      <sprite ref={digit} material={lamp} position={[-side * 0.02, 0, 0.47]} scale={0.62} />
     </group>
   );
 }
@@ -69,8 +66,26 @@ export default function EntanglementScene({ active }: SceneProps) {
   const particleMat = useDisposable(() => new MeshBasicMaterial({ color: new Color(0.8, 0.75, 1.4) }), []);
   const sourceGeo = useDisposable(() => new SphereGeometry(0.15, 32, 16), []);
   const sourceMat = useDisposable(() => new MeshBasicMaterial({ color: new Color(0.9, 0.4, 1.6) }), []);
-  const leftLamp = useDisposable(() => new MeshBasicMaterial({ color: UP.clone() }), []);
-  const rightLamp = useDisposable(() => new MeshBasicMaterial({ color: DOWN.clone() }), []);
+  const digits = useDisposable(() => {
+    const zero = textTexture('0', '#ffffff');
+    const one = textTexture('1', '#ffffff');
+    return {
+      zero,
+      one,
+      dispose: () => {
+        zero.dispose();
+        one.dispose();
+      },
+    };
+  }, []);
+  const leftLamp = useDisposable(
+    () => new SpriteMaterial({ map: digits.zero, color: ZERO.clone(), transparent: true, depthWrite: false }),
+    [digits],
+  );
+  const rightLamp = useDisposable(
+    () => new SpriteMaterial({ map: digits.zero, color: ZERO.clone(), transparent: true, depthWrite: false }),
+    [digits],
+  );
   // A glowing thread joins the two members of every pair while they fly: one shared state.
   const linkGeo = useDisposable(() => {
     const g = new BufferGeometry();
@@ -94,8 +109,8 @@ export default function EntanglementScene({ active }: SceneProps) {
   );
 
   const particles = useRef<InstancedMesh>(null);
-  const leftArrow = useRef<Group>(null);
-  const rightArrow = useRef<Group>(null);
+  const leftDigit = useRef<Sprite>(null);
+  const rightDigit = useRef<Sprite>(null);
   const source = useRef<Group>(null);
   const clock = useRef({ now: 0, token: useEntanglement.getState().request.token, nextIdle: 1 });
 
@@ -147,19 +162,19 @@ export default function EntanglementScene({ active }: SceneProps) {
     pos.needsUpdate = flying > 0;
     linkGeo.setDrawRange(0, flying * 2);
 
-    // Detectors: arrow up (cyan) or down (magenta), flashing at each detection.
+    // Detectors: the bit read, 0 (cyan) or 1 (magenta), flashing at each detection.
     const l = engine.last;
     const reduced = selectReducedMotion(useSettings.getState());
     if (l.at >= 0) {
       const flash = reduced ? 1 : 1 + 1.2 * Math.exp(-(c.now - l.at) * 5);
-      leftLamp.color.copy(l.left > 0 ? UP : DOWN).multiplyScalar(flash);
-      rightLamp.color.copy(l.right > 0 ? UP : DOWN).multiplyScalar(flash);
-      leftArrow.current?.rotation.set(0, 0, l.left > 0 ? 0 : Math.PI);
-      rightArrow.current?.rotation.set(0, 0, l.right > 0 ? 0 : Math.PI);
+      leftLamp.map = l.left ? digits.one : digits.zero;
+      rightLamp.map = l.right ? digits.one : digits.zero;
+      leftLamp.color.copy(l.left ? ONE : ZERO).multiplyScalar(flash);
+      rightLamp.color.copy(l.right ? ONE : ZERO).multiplyScalar(flash);
     }
     // No result shown until the first detection.
-    if (leftArrow.current) leftArrow.current.visible = l.at >= 0;
-    if (rightArrow.current) rightArrow.current.visible = l.at >= 0;
+    if (leftDigit.current) leftDigit.current.visible = l.at >= 0;
+    if (rightDigit.current) rightDigit.current.visible = l.at >= 0;
     if (source.current && !reduced) source.current.scale.setScalar(1 + 0.1 * Math.sin(c.now * 5));
 
     if (active && (measured > 0 || st.inFlight !== engine.pending)) {
@@ -167,8 +182,8 @@ export default function EntanglementScene({ active }: SceneProps) {
         inFlight: engine.pending,
         summary: {
           pairs: engine.pairs,
-          opposite: engine.opposite,
-          leftUp: engine.leftUp,
+          matched: engine.matched,
+          leftZero: engine.leftZero,
           last: engine.pairs > 0 ? { left: l.left, right: l.right } : null,
         },
       });
@@ -182,8 +197,8 @@ export default function EntanglementScene({ active }: SceneProps) {
       </group>
       <instancedMesh ref={particles} args={[particleGeo, particleMat, 2 * SLOTS]} frustumCulled={false} />
       <lineSegments geometry={linkGeo} material={linkMat} frustumCulled={false} />
-      <Detector side={-1} arrow={leftArrow} lamp={leftLamp} />
-      <Detector side={1} arrow={rightArrow} lamp={rightLamp} />
+      <Detector side={-1} digit={leftDigit} lamp={leftLamp} />
+      <Detector side={1} digit={rightDigit} lamp={rightLamp} />
     </group>
   );
 }

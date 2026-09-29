@@ -257,7 +257,7 @@ function Equipment() {
  */
 function ComputerHotspot() {
   const t = useUi();
-  const inLab = useLab((s) => s.current === null && !s.computer);
+  const inLab = useLab((s) => s.current === null && s.panel === null);
   const narrow = useThree((s) => s.size.width < 700);
   const geo = useDisposable(() => new CylinderGeometry(2, 2, 7.6, 16), []);
   const mat = useDisposable(() => new MeshBasicMaterial({ colorWrite: false, depthWrite: false }), []);
@@ -271,7 +271,7 @@ function ComputerHotspot() {
     if (useLab.getState().current) return;
     e.stopPropagation();
     document.body.style.cursor = '';
-    useLab.getState().showComputer();
+    useLab.getState().show('computer');
   };
   return (
     <group position={[-ROOM.fridgeX, 0, ROOM.fridgeZ]}>
@@ -287,7 +287,7 @@ function ComputerHotspot() {
         <Html position={[0, 0.2, 0]} center zIndexRange={[5, 0]}>
           <div
             aria-hidden="true"
-            onClick={() => useLab.getState().showComputer()}
+            onClick={() => useLab.getState().show('computer')}
             className="cursor-pointer rounded-full border border-amber-300/40 bg-void/70 px-3.5 py-1.5 text-sm font-medium whitespace-nowrap text-amber-200 backdrop-blur-sm select-none hover:bg-amber-300/15"
           >
             {t.computerLabel}

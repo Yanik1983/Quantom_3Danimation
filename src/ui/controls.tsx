@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react';
+import { RichText } from './RichText';
 
 interface SliderProps {
   label: string;
@@ -178,6 +179,85 @@ export function ControlPanel({ children, title = 'Controls' }: { children: React
       className="space-y-4 rounded-xl border border-white/10 bg-white/[0.03] p-4"
     >
       {children}
+    </div>
+  );
+}
+
+/**
+ * "What you saw": explains the result right after the visitor tries something. Always rendered
+ * (so screen readers announce changes), but empty and invisible until there is something to say.
+ */
+export function Saw({ label, text }: { label: string; text: string | null }) {
+  return (
+    <div aria-live="polite">
+      {text && (
+        <div className="animate-fade rounded-xl border border-violet/40 bg-violet/[0.08] px-3.5 py-2.5 text-sm leading-relaxed text-slate-200">
+          <p className="text-xs font-semibold text-violet-ink">{label}</p>
+          <p className="mt-0.5">
+            <RichText text={text} />
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A small − n + counter. */
+export function Stepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  format,
+  decLabel,
+  incLabel,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange(v: number): void;
+  format(v: number): string;
+  decLabel: string;
+  incLabel: string;
+}) {
+  const id = useId();
+  const btn =
+    'flex size-8 items-center justify-center rounded-full border border-white/15 text-lg leading-none text-slate-100 hover:border-white/40 disabled:opacity-40';
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="min-w-0 text-sm">
+        <p id={id} className="text-slate-200">
+          {label}
+        </p>
+        <output aria-labelledby={id} className="font-mono text-xs text-cyan tabular-nums rtl:font-sans">
+          {format(value)}
+        </output>
+      </div>
+      <div className="flex shrink-0 items-center gap-2" role="group" aria-labelledby={id}>
+        <button
+          type="button"
+          className={btn}
+          aria-label={decLabel}
+          disabled={value <= min}
+          onClick={() => onChange(value - 1)}
+        >
+          −
+        </button>
+        <span className="w-5 text-center font-display text-lg text-white tabular-nums" aria-hidden="true">
+          {value}
+        </span>
+        <button
+          type="button"
+          className={btn}
+          aria-label={incLabel}
+          disabled={value >= max}
+          onClick={() => onChange(value + 1)}
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }

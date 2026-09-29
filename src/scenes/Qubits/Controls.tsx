@@ -1,14 +1,31 @@
 import { useUi } from '../../content/i18n';
-import { Button, LiveDescription, Slider } from '../../ui/controls';
-import { MAX_QUBITS, useQubits } from './store';
+import { Button, LiveDescription, Saw, Slider, Stepper } from '../../ui/controls';
+import { countResults, MANY, MAX_QUBITS, useQubits } from './store';
 
 const pct = (p: number) => `${Math.round(p * 100)}%`;
-const bitStrings = (n: number) => Array.from({ length: 1 << n }, (_, i) => i.toString(2).padStart(n, '0'));
+const bitString = (i: number, n: number) => i.toString(2).padStart(n, '0');
 
 export default function QubitsControls() {
   const s = useQubits();
   const t = useUi();
-  const possibilities = 1 << s.count;
+  const possible = 1 << s.count;
+
+  let saw: string | null = null;
+  if (s.batch) {
+    const counts = countResults(s.batch, s.count);
+    if (s.count === 1) saw = t.sawTally(counts[0], counts[1]);
+    else {
+      let top = 0;
+      for (let i = 1; i < counts.length; i++) if (counts[i] > counts[top]) top = i;
+      const kinds = counts.filter((c) => c > 0).length;
+      saw = t.sawSpread(kinds, possible, bitString(top, s.count), counts[top]);
+    }
+  } else if (s.result) {
+    saw = s.count === 1 ? t.sawOne(s.result[0]) : t.sawMany(s.result.join(''), possible);
+  } else if (s.count > 1) {
+    saw = t.sawDoubling(s.count, possible);
+  }
+
   return (
     <>
       <Slider
@@ -20,36 +37,33 @@ export default function QubitsControls() {
         onChange={s.setP1}
         format={(p) => t.mix01Value(pct(1 - p), pct(p))}
       />
-      <Button variant="primary" onClick={s.measure}>
-        {t.measure}
-      </Button>
-      <Slider
+      <div className="flex flex-wrap gap-2">
+        <Button variant="primary" onClick={s.measure}>
+          {t.measure}
+        </Button>
+        <Button onClick={s.measureMany}>{t.measureTimes(MANY)}</Button>
+      </div>
+      <Stepper
         label={t.qubitCount}
+        value={s.count}
         min={1}
         max={MAX_QUBITS}
-        step={1}
-        value={s.count}
         onChange={s.setCount}
         format={(n) => t.qubitCountValue(n, 1 << n)}
+        decLabel={t.removeQubit}
+        incLabel={t.addQubit}
       />
-      <p
-        dir="ltr"
-        className="text-start font-mono text-xs leading-relaxed break-words text-slate-400"
-        aria-hidden="true"
-      >
-        {bitStrings(s.count).join('  ')}
-      </p>
-      <div aria-live="polite" className="min-h-[1.5rem] text-sm text-slate-200">
-        {s.result && (
-          <p>
-            {t.result}{' '}
-            <strong dir="ltr" className="font-mono text-white">
-              {s.result.join('')}
-            </strong>
-          </p>
-        )}
-      </div>
-      <LiveDescription>{t.holds(s.count, possibilities)}</LiveDescription>
+      {s.count > 1 && (
+        <p
+          dir="ltr"
+          className="text-start font-mono text-xs leading-relaxed break-words text-slate-400"
+          aria-hidden="true"
+        >
+          {Array.from({ length: possible }, (_, i) => bitString(i, s.count)).join('  ')}
+        </p>
+      )}
+      <Saw label={t.whatYouSaw} text={saw} />
+      <LiveDescription>{t.mix01Value(pct(1 - s.p1), pct(s.p1))}</LiveDescription>
     </>
   );
 }

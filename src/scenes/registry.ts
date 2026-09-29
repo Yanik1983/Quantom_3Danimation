@@ -17,10 +17,6 @@ export const SCENES: Record<ExperimentId, SceneEntry> = {
     Scene: lazy(() => import('./DoubleSlit/Scene')),
     Controls: lazy(() => import('./DoubleSlit/Controls')),
   },
-  superposition: {
-    Scene: lazy(() => import('./Superposition/Scene')),
-    Controls: lazy(() => import('./Superposition/Controls')),
-  },
   qubits: {
     Scene: lazy(() => import('./Qubits/Scene')),
     Controls: lazy(() => import('./Qubits/Controls')),

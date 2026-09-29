@@ -29,6 +29,18 @@ export function singletOutcome(a: number, b: number, rng: Rng): [number, number]
   return [A, rng() < pSame ? A : -A];
 }
 
+/**
+ * One pair in the Bell state |Φ⁺⟩ = (|00⟩ + |11⟩)/√2, the pair quantum computers make with a
+ * Hadamard and a CNOT. Each qubit is measured along a direction at angle a (left) or b (right)
+ * in the x–z plane; outcomes are bits. P(same bit) = cos²((a − b)/2), so along the same axis
+ * the two results always match, while each one on its own is a fair coin.
+ */
+export function phiPlusOutcome(a: number, b: number, rng: Rng): [0 | 1, 0 | 1] {
+  const A: 0 | 1 = rng() < 0.5 ? 0 : 1;
+  const pSame = Math.cos((a - b) / 2) ** 2;
+  return [A, rng() < pSame ? A : A === 0 ? 1 : 0];
+}
+
 /** One pair from the local hidden-variable model. */
 export function lhvOutcome(a: number, b: number, rng: Rng): [number, number] {
   const lambda = 2 * Math.PI * rng();

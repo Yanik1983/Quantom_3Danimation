@@ -4,9 +4,9 @@ export const MANY = 100;
 
 export interface PairSummary {
   pairs: number;
-  opposite: number;
-  leftUp: number;
-  last: { left: 1 | -1; right: 1 | -1 } | null;
+  matched: number;
+  leftZero: number;
+  last: { left: 0 | 1; right: 0 | 1 } | null;
 }
 
 interface EntanglementState {
@@ -20,7 +20,7 @@ interface EntanglementState {
   reset(): void;
 }
 
-const EMPTY: PairSummary = { pairs: 0, opposite: 0, leftUp: 0, last: null };
+const EMPTY: PairSummary = { pairs: 0, matched: 0, leftZero: 0, last: null };
 
 export const useEntanglement = create<EntanglementState>()((set) => ({
   request: { n: 0, token: 0 },

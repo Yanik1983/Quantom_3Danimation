@@ -5,7 +5,7 @@ import { RichText } from './RichText';
 
 /** What the gold machine is: shown when it is clicked in the lab (camera glides to it). */
 export function ComputerCard() {
-  const show = useLab((s) => s.computer);
+  const show = useLab((s) => s.panel === 'computer');
   const { COMPUTER } = useContent();
   const t = useUi();
   const titleId = useId();

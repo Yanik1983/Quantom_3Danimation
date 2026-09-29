@@ -77,6 +77,7 @@ export default function SearchScene({ active }: SceneProps) {
   const bars = useRef<(Mesh | null)[]>([]);
   const cups = useRef<(Group | null)[]>([]);
   const cardRef = useRef<Mesh>(null);
+  const baseRef = useRef<Mesh>(null);
   const anim = useRef({ time: 0, shown: new Float64Array(CUPS), lift: new Float64Array(CUPS) });
 
   useEffect(() => {
@@ -92,7 +93,11 @@ export default function SearchScene({ active }: SceneProps) {
 
     let marked = st.marked;
     let found: number | null = null;
-    if (active) {
+    const classic = active && st.mode === 'classic';
+    if (classic) {
+      // The normal computer's round: no qubits, no waves; lifted cups stay up.
+      target.fill(0);
+    } else if (active) {
       target.set(st.amps);
       if (st.stage === 4) found = st.found;
     } else {
@@ -108,29 +113,37 @@ export default function SearchScene({ active }: SceneProps) {
       const h = Math.max(0.002, Math.abs(amp) * BAR_SCALE);
       const m = bars.current[i];
       if (m) {
+        m.visible = !classic;
         m.scale.y = h;
         m.position.y = BASELINE + (amp >= 0 ? h / 2 : -h / 2);
       }
       barMats.list[i].color.copy(amp >= 0 ? POSITIVE : NEGATIVE);
       // The measured cup lifts to reveal the card.
-      a.lift[i] += ((found === i ? 0.75 : 0) - a.lift[i]) * k;
+      const up = classic ? st.lifted[i] : found === i;
+      a.lift[i] += ((up ? 0.75 : 0) - a.lift[i]) * k;
       const c = cups.current[i];
       if (c) c.position.y = a.lift[i];
     }
+    if (baseRef.current) baseRef.current.visible = !classic;
     if (cardRef.current) {
       cardRef.current.position.x = CUP_X(marked);
-      cardRef.current.visible = found !== null && found === marked;
+      cardRef.current.visible = classic ? st.lifted[marked] : found !== null && found === marked;
     }
   });
 
   return (
     <group>
-      <mesh geometry={base} material={baseMat} position={[0, BASELINE, CUP_Z]} />
+      <mesh ref={baseRef} geometry={base} material={baseMat} position={[0, BASELINE, CUP_Z]} />
       {CUP_LABELS.map((label, i) => (
         <group key={label} position={[CUP_X(i), 0, CUP_Z]}>
           <group
             ref={(g) => {
               cups.current[i] = g;
+            }}
+            onClick={(e) => {
+              if (!active || useSearch.getState().mode !== 'classic') return;
+              e.stopPropagation();
+              useSearch.getState().lift(i);
             }}
           >
             <mesh geometry={cup} material={cupMat} />

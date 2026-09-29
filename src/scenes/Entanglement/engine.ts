@@ -2,12 +2,12 @@
  * Entangled pairs in flight. Pure TypeScript with preallocated slots; `update` allocates
  * nothing per frame (an outcome tuple only when a pair is measured).
  *
- * Each pair is created in the singlet state (|↑↓⟩ − |↓↑⟩)/√2 and flies to two detectors
- * that measure spin along the same (vertical) axis. The joint outcome is Born-sampled at
- * the moment of detection (physics/bell.ts, singletOutcome with a = b): each side on its own
- * is a fair coin, and the two sides are always opposite.
+ * Each pair is two qubits created in the Bell state (|00⟩ + |11⟩)/√2 and flown to two
+ * detectors that measure along the same axis. The joint outcome is Born-sampled at the moment
+ * of detection (physics/bell.ts, phiPlusOutcome with a = b): each side on its own is a fair
+ * coin, and the two sides always match.
  */
-import { singletOutcome } from '../../physics/bell';
+import { phiPlusOutcome } from '../../physics/bell';
 import type { Rng } from '../../physics/rng';
 
 export const SLOTS = 48;
@@ -18,8 +18,8 @@ export const FLIGHT_FAST = 0.7;
 export const BATCH_SPACING = 0.05;
 
 export interface PairResult {
-  left: 1 | -1;
-  right: 1 | -1;
+  left: 0 | 1;
+  right: 0 | 1;
   /** Time of detection. */
   at: number;
 }
@@ -30,10 +30,10 @@ export class PairEngine {
   readonly flight = new Float64Array(SLOTS);
   pending = 0;
   fast = false;
-  last: PairResult = { left: 1, right: -1, at: -1 };
+  last: PairResult = { left: 0, right: 0, at: -1 };
   pairs = 0;
-  opposite = 0;
-  leftUp = 0;
+  matched = 0;
+  leftZero = 0;
   /** Scheduled time of the next launch (keeps batch spacing exact at any frame rate). */
   private nextLaunch = 0;
   private readonly rng: Rng;
@@ -52,8 +52,8 @@ export class PairEngine {
   clear(): void {
     this.start.fill(-1);
     this.pending = 0;
-    this.pairs = this.opposite = this.leftUp = 0;
-    this.last = { left: 1, right: -1, at: -1 };
+    this.pairs = this.matched = this.leftZero = 0;
+    this.last = { left: 0, right: 0, at: -1 };
   }
 
   /** Advance to `now` (s). Returns how many pairs were measured during this step. */
@@ -62,13 +62,11 @@ export class PairEngine {
     for (let i = 0; i < SLOTS; i++) {
       const t0 = this.start[i];
       if (t0 < 0 || now - t0 < this.flight[i]) continue;
-      const [A, B] = singletOutcome(0, 0, this.rng);
-      const left = A > 0 ? 1 : -1;
-      const right = B > 0 ? 1 : -1;
+      const [left, right] = phiPlusOutcome(0, 0, this.rng);
       this.last = { left, right, at: now };
       this.pairs++;
-      if (left !== right) this.opposite++;
-      if (left > 0) this.leftUp++;
+      if (left === right) this.matched++;
+      if (left === 0) this.leftZero++;
       this.start[i] = -1;
       measured++;
     }

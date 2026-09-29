@@ -30,13 +30,12 @@ function table(
   return { position: [x, 0, z], yaw: Math.atan2(FACING.x - x, FACING.z - z), camera, look };
 }
 
-/** Five tables on a gentle arc, in the order the experiments are meant to be visited. */
+/** Four tables on a gentle arc, in the order the steps are meant to be visited. */
 export const TABLES: Record<ExperimentId, TablePose> = {
-  basics: table(-10, 0.2, [0, 4.4, 6.9], [-0.2, 0.9, -0.3]),
-  superposition: table(-5.1, -3.1, [0, 3.2, 6.6], [0, 0.8, 0]),
-  qubits: table(0, -4.3, [0, 3.1, 7.0], [0, 1.2, 0]),
-  entanglement: table(5.1, -3.1, [0, 2.9, 6.9], [0, 0.9, 0]),
-  search: table(10, 0.2, [0.3, 3.6, 7.2], [0.3, 1.1, 0]),
+  basics: table(-9, -0.4, [0, 4.4, 6.9], [0, 0.9, -0.3]),
+  qubits: table(-3.1, -3.7, [0, 3.6, 7.2], [0, 1.1, 0]),
+  entanglement: table(3.1, -3.7, [0, 2.9, 6.9], [0, 0.9, 0]),
+  search: table(9, -0.4, [0.3, 3.6, 7.2], [0.3, 1.1, 0]),
 };
 
 /** Close-up of the open dilution refrigerator (world coordinates). */

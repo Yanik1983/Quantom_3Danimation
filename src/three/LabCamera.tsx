@@ -48,13 +48,13 @@ export function LabCamera() {
 
   useFrame((state, dt) => {
     const { width, height } = state.size;
-    const { current, computer } = useLab.getState();
+    const { current, panel } = useLab.getState();
     const settings = useSettings.getState();
     const reduced = selectReducedMotion(settings);
-    const f = framing(width, height, current !== null || computer, UI[settings.lang].dir === 'rtl');
+    const f = framing(width, height, current !== null || panel !== null, UI[settings.lang].dir === 'rtl');
 
     if (current) closeUpPose(current, targetPos, targetLook);
-    else if (computer) {
+    else if (panel === 'computer') {
       targetPos.set(...COMPUTER_POSE.camera);
       targetLook.set(...COMPUTER_POSE.look);
     } else {
