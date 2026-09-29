@@ -20,7 +20,7 @@ export interface ExperimentCopy {
 
 export const WELCOME = {
   title: 'Quantum physics, simply explained',
-  text: 'Everything around you is made of tiny particles. Quantum physics is the set of rules those particles follow, and those rules are very different from everyday life.',
+  text: 'Everything is made of tiny particles, far too small to see. They follow their own strange rules. Try each experiment to see how.',
   prompt: 'Choose an experiment to begin.',
 };
 
@@ -34,7 +34,7 @@ export const COPY: Record<ExperimentId, ExperimentCopy> = {
   basics: {
     name: 'What is quantum physics?',
     title: 'The world of the very small',
-    text: 'Zoom in far enough and you reach atoms, a million times smaller than a grain of sand. At that size, the normal rules stop working. Tiny particles like electrons travel like **waves**, spreading out and passing through two openings at once. But when they hit a screen, each one lands as a single **dot**.',
+    text: 'Everything is made of atoms, far too small to see. Tiny things act strangely. Fire them at a wall with two thin slits: each one travels like a **wave** through both slits at once. Yet each lands on the screen as one **dot**. Together the dots make stripes. Watch the slits and the stripes vanish.',
     learnMore: {
       paragraphs: [
         'Every particle has a wavelength set by its momentum $p$. For an electron it is about the size of an atom, which is why the wave only shows up at tiny scales. The wave passes through both slits and overlaps with itself. Where each dot lands is random, with odds set by the wave’s brightness $|\\psi|^2$, so the dots build up stripes.',
@@ -51,7 +51,7 @@ export const COPY: Record<ExperimentId, ExperimentCopy> = {
   superposition: {
     name: 'Superposition',
     title: 'In two places at once',
-    text: 'A coin on a table is either heads or tails. A quantum particle can be in a **mix** of two states at the same time. This is called **superposition**. When you look, the mix ends and you find it in just one place. Which one is random, but the mix sets the odds.',
+    text: 'A coin on a table shows heads or tails. A tiny particle can be in **two places at once**. This is called **superposition**. To look, you shine light on it, and then it shows up in just one place. You cannot know which one ahead of time, but the slider sets the odds.',
     learnMore: {
       paragraphs: [
         'The state is a sum of both possibilities, each with an amplitude. The chance of finding the particle in a box is the amplitude squared. “Looking” means any physical interaction that records where the particle is, such as light bouncing off it.',
@@ -67,7 +67,7 @@ export const COPY: Record<ExperimentId, ExperimentCopy> = {
   qubits: {
     name: 'Qubits',
     title: 'The quantum bit',
-    text: 'A computer bit is always **0 or 1**. A **qubit** can be 0, 1, or a mix of both at once. With more qubits the possibilities double: 2 qubits hold 4 at once, 3 hold 8, 10 hold over a thousand. Quantum computers use this to work on many possibilities together.',
+    text: 'A normal computer bit is like a switch: **0 or 1**. A **qubit** can be 0, 1, or both at once. Each extra qubit doubles the possibilities: 1 qubit holds 2, 2 hold 4, 3 hold 8. When you measure, you still get just one answer. Quantum computers are built to make the right answer likely.',
     learnMore: {
       paragraphs: [
         'A qubit is drawn as an arrow on a sphere (the Bloch sphere). Up is 0, down is 1, and the tilt sets the odds. Turning around the vertical axis changes the phase, which the measurement here cannot see but quantum algorithms use.',
@@ -84,7 +84,7 @@ export const COPY: Record<ExperimentId, ExperimentCopy> = {
   entanglement: {
     name: 'Entanglement',
     title: 'Linked across any distance',
-    text: 'Two particles can be created together so that they share one state. They are **entangled**. Measure one and you get a random result. Measure the other, even across the universe, and it always gives the **opposite**. Each result on its own is random, so no message is sent. Einstein called this “spooky action at a distance”.',
+    text: 'Two particles can be made as a linked pair. They are **entangled**. Measure one: the result is random, up or down. Measure its partner, even very far away: it is always the **opposite**. You still cannot use this to send messages, because each result is random. Einstein called it “spooky”.',
     learnMore: {
       paragraphs: [
         'The pair shares one state in which the two spins always point opposite ways, yet neither has its own value before it is measured.',
