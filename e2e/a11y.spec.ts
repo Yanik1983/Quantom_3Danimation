@@ -2,21 +2,29 @@ import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
 const VIEWS = ['', 'basics', 'superposition', 'qubits', 'entanglement'];
+const LABELS = {
+  en: { controls: 'Experiment controls', learnMore: 'Learn more', menu: 'Experiments' },
+  he: { controls: 'פקדי הניסוי', learnMore: 'לקריאה נוספת', menu: 'ניסויים' },
+};
+const RUNS = [
+  ...VIEWS.map((id) => ({ id, lang: 'en' as const })),
+  ...['', 'superposition'].map((id) => ({ id, lang: 'he' as const })),
+];
 
-for (const id of VIEWS) {
-  test(`axe: no serious or critical violations in ${id || 'the lab'}`, async ({ page }) => {
+for (const { id, lang } of RUNS) {
+  const where = `${id || 'the lab'}${lang === 'he' ? ' (Hebrew)' : ''}`;
+  test(`axe: no serious or critical violations in ${where}`, async ({ page }) => {
+    const l = LABELS[lang];
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto(id ? `/#${id}` : '/');
+    await page.goto(`/?lang=${lang}${id ? `#${id}` : ''}`);
     if (id) {
-      await expect(
-        page.getByRole('group', { name: 'Experiment controls' }).getByRole('button').first(),
-      ).toBeVisible({
+      await expect(page.getByRole('group', { name: l.controls }).getByRole('button').first()).toBeVisible({
         timeout: 30_000,
       });
       // Include the expanded "Learn more" (equations) in the audit.
-      await page.getByText('Learn more').click();
+      await page.getByText(l.learnMore).click();
     } else {
-      await expect(page.getByRole('navigation', { name: 'Experiments' })).toBeVisible();
+      await expect(page.getByRole('navigation', { name: l.menu })).toBeVisible();
     }
     const results = await new AxeBuilder({ page })
       // The WebGL canvas and its floating labels are decorative (aria-hidden); the DOM has the text.

@@ -24,8 +24,11 @@ export function formatLength(m: number): string {
   return `${(m / 1e-9).toPrecision(1)} nm`;
 }
 
-export function zoomLabel(z: number): string {
-  const what = z < 0.4 ? 'a grain of sand' : z < 0.86 ? 'atoms inside the grain' : 'one atom';
+const STAGE_NAMES = ['a grain of sand', 'atoms inside the grain', 'one atom'] as const;
+
+/** Size label, e.g. "100 µm: a grain of sand"; `names` translates the three pictures. */
+export function zoomLabel(z: number, names: readonly [string, string, string] = STAGE_NAMES): string {
+  const what = names[z < 0.4 ? 0 : z < 0.86 ? 1 : 2];
   return `${formatLength(fieldOfView(z))}: ${what}`;
 }
 

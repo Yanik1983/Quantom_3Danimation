@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { easing } from 'maath';
 import { useLab } from '../state/lab';
+import { UI } from '../content/i18n';
 import { selectReducedMotion, useSettings } from '../state/settings';
 import { rig } from './rig';
 import { closeUpPose, OVERVIEW } from './tables';
@@ -15,11 +16,11 @@ const offset = { x: 0, y: 0 };
 
 /**
  * Where the scene should sit on screen, as a view offset in pixels: with an experiment open
- * the card covers the left side (wide screens) or the bottom (phones), so the picture shifts
- * into the free area. Also returns how far to back off in portrait, where the horizontal
- * field of view is narrow.
+ * the card covers the left side (right side in Hebrew) on wide screens or the bottom on phones,
+ * so the picture shifts into the free area. Also returns how far to back off in portrait, where
+ * the horizontal field of view is narrow.
  */
-function framing(width: number, height: number, open: boolean) {
+function framing(width: number, height: number, open: boolean, rtl: boolean) {
   const aspect = width / height;
   let dx = 0;
   let dy = 0;
@@ -30,7 +31,7 @@ function framing(width: number, height: number, open: boolean) {
   }
   const distance =
     aspect < 1 ? Math.min(open ? 2.2 : 3.2, (open ? 0.85 : 1.45) / aspect) : aspect < 1.3 ? 1.15 : 1;
-  return { dx, dy, distance };
+  return { dx: rtl ? -dx : dx, dy, distance };
 }
 
 /** Glides between the lab overview and each experiment's close-up (a cut under reduced motion). */
@@ -41,8 +42,9 @@ export function LabCamera() {
   useFrame((state, dt) => {
     const { width, height } = state.size;
     const current = useLab.getState().current;
-    const reduced = selectReducedMotion(useSettings.getState());
-    const f = framing(width, height, current !== null);
+    const settings = useSettings.getState();
+    const reduced = selectReducedMotion(settings);
+    const f = framing(width, height, current !== null, UI[settings.lang].dir === 'rtl');
 
     if (current) closeUpPose(current, targetPos, targetLook);
     else {

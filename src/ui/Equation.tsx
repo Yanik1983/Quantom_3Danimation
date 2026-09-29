@@ -19,5 +19,6 @@ export const Equation = memo(function Equation({ tex, display = false, className
     [tex, display],
   );
   const Tag = display ? 'div' : 'span';
-  return <Tag className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  // Maths reads left to right in every language.
+  return <Tag dir="ltr" className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 });

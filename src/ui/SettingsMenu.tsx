@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { useUi } from '../content/i18n';
 import { useSettings, type MotionPref, type TierPref } from '../state/settings';
 
 interface RadioOption<T extends string> {
@@ -15,7 +16,7 @@ function RadioRow<T extends string>(props: {
   const name = useId();
   return (
     <fieldset className="space-y-2">
-      <legend className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+      <legend className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase rtl:tracking-normal">
         {props.legend}
       </legend>
       <div className="flex flex-wrap gap-1.5">
@@ -49,6 +50,7 @@ export function SettingsMenu() {
   const panelId = useId();
   const root = useRef<HTMLDivElement>(null);
   const s = useSettings();
+  const t = useUi();
 
   useEffect(() => {
     if (!open) return;
@@ -65,15 +67,15 @@ export function SettingsMenu() {
   }, [open]);
 
   const tierOptions: RadioOption<TierPref>[] = [
-    { value: 'auto', label: `Auto (${s.autoTier})` },
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
+    { value: 'auto', label: t.auto(t.tier[s.autoTier]) },
+    { value: 'low', label: t.tier.low },
+    { value: 'medium', label: t.tier.medium },
+    { value: 'high', label: t.tier.high },
   ];
   const motionOptions: RadioOption<MotionPref>[] = [
-    { value: 'system', label: `System (${s.systemReducedMotion ? 'reduced' : 'full'})` },
-    { value: 'reduce', label: 'Reduced' },
-    { value: 'full', label: 'Full' },
+    { value: 'system', label: t.system(s.systemReducedMotion) },
+    { value: 'reduce', label: t.reduced },
+    { value: 'full', label: t.full },
   ];
 
   return (
@@ -85,7 +87,7 @@ export function SettingsMenu() {
         onClick={() => setOpen((o) => !o)}
         className="glass flex size-10 items-center justify-center rounded-full text-slate-200 hover:text-white"
       >
-        <span className="sr-only">Settings</span>
+        <span className="sr-only">{t.settings}</span>
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
@@ -102,20 +104,22 @@ export function SettingsMenu() {
         <div
           id={panelId}
           role="dialog"
-          aria-label="Settings"
-          className="glass absolute top-12 right-0 w-80 max-w-[calc(100vw-2rem)] space-y-5 rounded-2xl p-5"
+          aria-label={t.settings}
+          className="glass absolute top-12 end-0 w-80 max-w-[calc(100vw-2rem)] space-y-5 rounded-2xl p-5"
         >
           <RadioRow
-            legend="Visual quality"
+            legend={t.visualQuality}
             value={s.tierPref}
             options={tierOptions}
             onChange={s.setTierPref}
           />
-          <RadioRow legend="Motion" value={s.motionPref} options={motionOptions} onChange={s.setMotionPref} />
-          <p className="text-xs leading-relaxed text-slate-400">
-            Auto quality watches your frame rate and adjusts particle counts and effects. Reduced motion
-            replaces camera glides with cuts; experiments stay interactive.
-          </p>
+          <RadioRow
+            legend={t.motion}
+            value={s.motionPref}
+            options={motionOptions}
+            onChange={s.setMotionPref}
+          />
+          <p className="text-xs leading-relaxed text-slate-400">{t.settingsNote}</p>
         </div>
       )}
     </div>

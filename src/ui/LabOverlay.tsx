@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { COPY, ENDING, LAB_ALT, WELCOME } from '../content/experiments';
+import { useContent, useUi } from '../content/i18n';
 import { EXPERIMENTS, useLab, type ExperimentId } from '../state/lab';
 
 /** Lab overview: the welcome text and the experiment menu (large tiles on phones). */
 export function LabOverlay() {
+  const { COPY, ENDING, LAB_ALT, WELCOME } = useContent();
+  const t = useUi();
   const current = useLab((s) => s.current);
   const visited = useLab((s) => s.visited);
   const hovered = useLab((s) => s.hovered);
@@ -40,7 +42,7 @@ export function LabOverlay() {
       </div>
 
       <nav
-        aria-label="Experiments"
+        aria-label={t.experiments}
         hidden={!open}
         className="fixed inset-x-0 bottom-0 z-20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-5 md:px-6 md:pb-0"
       >
@@ -57,14 +59,14 @@ export function LabOverlay() {
                   onClick={() => useLab.getState().open(id)}
                   onPointerEnter={() => useLab.getState().setHovered(id)}
                   onPointerLeave={() => useLab.getState().setHovered(null)}
-                  className={`glass flex h-full min-h-20 w-full flex-col items-start justify-between gap-1 rounded-2xl px-4 py-3 text-left transition-colors md:min-h-0 md:flex-row md:items-center md:gap-2 md:rounded-full md:py-2 ${
+                  className={`glass flex h-full min-h-20 w-full flex-col items-start justify-between gap-1 rounded-2xl px-4 py-3 text-start transition-colors md:min-h-0 md:flex-row md:items-center md:gap-2 md:rounded-full md:py-2 ${
                     hovered === id ? 'border-cyan/60 text-white' : 'text-slate-100 hover:border-cyan/60'
                   }`}
                 >
                   <span className="font-display text-lg text-cyan md:text-sm">{i + 1}</span>
                   <span className="text-sm leading-snug font-medium">{COPY[id].name}</span>
                   {done && (
-                    <span className="text-cyan" aria-label="(visited)">
+                    <span className="text-cyan" aria-label={t.visited}>
                       ✓
                     </span>
                   )}

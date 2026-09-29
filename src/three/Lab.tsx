@@ -9,7 +9,7 @@ import {
   ShaderMaterial,
   TorusGeometry,
 } from 'three';
-import { COPY } from '../content/experiments';
+import { useContent } from '../content/i18n';
 import { useDisposable } from '../hooks/useDisposable';
 import { SCENES } from '../scenes/registry';
 import { EXPERIMENTS, useLab, type ExperimentId } from '../state/lab';
@@ -28,6 +28,7 @@ function TableLabel({ id, index }: { id: ExperimentId; index: number }) {
   const visited = useLab((s) => s.visited.includes(id));
   const hovered = useLab((s) => s.hovered === id);
   const narrow = useThree((s) => s.size.width < 700);
+  const name = useContent().COPY[id].name;
   if (current !== null || narrow) return null;
   return (
     <Html position={[0, -0.55, TABLE_RADIUS * 0.9]} center zIndexRange={[5, 0]}>
@@ -40,9 +41,9 @@ function TableLabel({ id, index }: { id: ExperimentId; index: number }) {
           hovered ? 'border-cyan/70 bg-cyan/20 text-white' : 'border-white/15 bg-void/70 text-slate-100'
         }`}
       >
-        <span className="mr-1.5 font-display text-cyan">{index + 1}</span>
-        {COPY[id].name}
-        {visited && <span className="ml-1.5 text-cyan">✓</span>}
+        <span className="me-1.5 font-display text-cyan">{index + 1}</span>
+        {name}
+        {visited && <span className="ms-1.5 text-cyan">✓</span>}
       </div>
     </Html>
   );

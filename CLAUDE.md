@@ -40,7 +40,9 @@ Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `pla
   resets its store when opened), `Controls.tsx` (2–3 controls, DOM), `store.ts`, optional pure `engine.ts` + test.
   Registered in `src/scenes/registry.ts` (keyed by `ExperimentId`).
 - `src/content/experiments.ts` — all copy: name, title, short text (35–70 words, no equations), Learn more (equations +
-  ≤ 110 words), alt text; plus welcome / ending lines.
+  ≤ 110 words), alt text; plus welcome / ending lines. `experiments.he.ts` is the Hebrew twin (≥ 30 words; shares the
+  equations — KaTeX cannot set Hebrew). `i18n.ts` holds UI strings per language: **every visible string goes through
+  `useUi()` / `useContent()`, in both languages.** Use logical classes (`ms-`/`me-`/`start-`/`end-`, `text-start`).
 - `src/three/` — canvas root, `Lab.tsx` (room + tables), `tables.ts` (table positions + close-up camera poses),
   `LabCamera.tsx`, `room/` (the quantum-computing lab around the tables), effects, GLSL in `shaders/`.
 - `src/ui/` — `LabOverlay` (welcome + menu/tiles), `ExperimentCard` (+ `LearnMore`), settings, controls primitives.

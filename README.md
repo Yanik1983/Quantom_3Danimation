@@ -81,8 +81,12 @@ src/physics                pure, dependency-free, unit-tested TypeScript
   `Controls.tsx`, a Zustand store, and any pure per-frame engine with tests. Registered in `src/scenes/registry.ts`.
 - **`src/three/`**: canvas root, lab room (`Lab.tsx`), table layout and camera poses (`tables.ts`), `LabCamera`,
   `room/` (the quantum-computing lab: cryostats, control racks, walls, floor), effects, shaders.
-- **`src/content/experiments.ts`**: all copy. A test checks lengths, renders every equation with KaTeX, and rejects
-  consciousness-causes-collapse phrasing.
+- **`src/content/experiments.ts`** (English) and **`experiments.he.ts`** (Hebrew): all copy. A test checks lengths
+  in both languages, renders every equation with KaTeX, and rejects consciousness-causes-collapse phrasing.
+- **`src/content/i18n.ts`**: interface strings (buttons, labels, results) per language, plus `useUi()` / `useContent()`.
+  The header switch toggles English ⇄ עברית; the choice is saved, and `?lang=he` links open in Hebrew. Hebrew sets
+  `dir="rtl"` (the card moves to the right and the camera frames the scene to its left); equations stay left to right,
+  and the Heebo font supplies Hebrew letters.
 
 ## Assumptions & Simplifications
 

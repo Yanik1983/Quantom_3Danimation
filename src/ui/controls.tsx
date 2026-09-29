@@ -10,9 +10,11 @@ interface SliderProps {
   /** Human-readable value shown next to the label and announced to screen readers. */
   format?(v: number): string;
   hint?: string;
+  /** Keep the minimum on the left even in Hebrew (for a slider about physical left and right). */
+  ltr?: boolean;
 }
 
-export function Slider({ label, value, min, max, step, onChange, format, hint }: SliderProps) {
+export function Slider({ label, value, min, max, step, onChange, format, hint, ltr }: SliderProps) {
   const id = useId();
   const text = format ? format(value) : String(value);
   return (
@@ -21,13 +23,14 @@ export function Slider({ label, value, min, max, step, onChange, format, hint }:
         <label htmlFor={id} className="text-slate-200">
           {label}
         </label>
-        <output htmlFor={id} className="font-mono text-xs text-cyan tabular-nums">
+        <output htmlFor={id} className="font-mono text-xs text-cyan tabular-nums rtl:font-sans">
           {text}
         </output>
       </div>
       <input
         id={id}
         type="range"
+        dir={ltr ? 'ltr' : undefined}
         min={min}
         max={max}
         step={step}
@@ -56,6 +59,8 @@ export function Toggle({
   checked: boolean;
   onChange(v: boolean): void;
   hint?: string;
+  /** Keep the minimum on the left even in Hebrew (for a slider about physical left and right). */
+  ltr?: boolean;
 }) {
   const id = useId();
   return (
@@ -78,8 +83,8 @@ export function Toggle({
       >
         <span
           aria-hidden="true"
-          className={`absolute top-0.5 left-0.5 size-4.5 rounded-full bg-white shadow transition-transform ${
-            checked ? 'translate-x-5' : ''
+          className={`absolute start-0.5 top-0.5 size-4.5 rounded-full bg-white shadow transition-transform ${
+            checked ? 'translate-x-5 rtl:-translate-x-5' : ''
           }`}
         />
       </button>

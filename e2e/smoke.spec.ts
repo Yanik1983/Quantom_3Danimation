@@ -181,3 +181,33 @@ test('settings expose quality and motion controls', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
 });
+
+test('Hebrew: the switch translates the lab, lays it out right to left and is remembered', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Switch to Hebrew' }).click();
+  const html = page.locator('html');
+  await expect(html).toHaveAttribute('lang', 'he');
+  await expect(html).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('פיזיקה קוונטית, בפשטות');
+
+  await page
+    .getByRole('navigation', { name: 'ניסויים' })
+    .getByRole('button', { name: /קיוביטים/ })
+    .click();
+  const controls = page.getByRole('group', { name: 'פקדי הניסוי' });
+  await controls.getByRole('button', { name: 'מדדו' }).click();
+  await expect(controls.getByText('תוצאה:')).toBeVisible();
+  // Equations stay left to right inside the Hebrew card.
+  await page.getByText('לקריאה נוספת').click();
+  await expect(page.locator('.katex-display').first().locator('xpath=..')).toHaveAttribute('dir', 'ltr');
+
+  await page.reload();
+  await expect(html).toHaveAttribute('dir', 'rtl');
+  await page.getByRole('button', { name: 'החלפה לאנגלית' }).click();
+  await expect(html).toHaveAttribute('dir', 'ltr');
+  await expect(page.getByRole('heading', { name: 'The quantum bit' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
