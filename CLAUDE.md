@@ -52,6 +52,8 @@ Chromium for Playwright is preinstalled at `/opt/pw-browsers` — never run `pla
   `useUi()` / `useContent()`, in both languages.** Use logical classes (`ms-`/`me-`/`start-`/`end-`, `text-start`).
 - `src/three/` — canvas root, `Lab.tsx` (room + tables), `tables.ts` (table positions + close-up camera poses),
   `LabCamera.tsx`, `room/` (the quantum-computing lab around the tables), effects, GLSL in `shaders/`.
+- `src/lib/sound.ts` — Web Audio effects (`sound.tick()`, `.measure()`, `.pair()`, …) + optional lab hum; pure helpers
+  in `soundMath.ts`. Call from controls/actions or rate-limited from `useFrame`; settings `sound` (on) / `ambient` (off).
 - `src/ui/` — `LabOverlay` (welcome + Start + menu/tiles), `ExperimentCard` (+ `LearnMore`), `FinaleCard`, `ComputerCard`,
   settings, controls primitives (incl. `Saw` = the What-you-saw box, `Stepper`).
 

@@ -35,6 +35,12 @@ const UI_EN = {
   finaleLabel: 'What you learned',
 
   settings: 'Settings',
+  sound: 'Sound effects',
+  labHum: 'Lab hum',
+  on: 'On',
+  off: 'Off',
+  labHumNote:
+    'The low hum of the lab and the steady pump of the gold refrigerator, as in a real quantum-computing lab.',
   visualQuality: 'Visual quality',
   motion: 'Motion',
   tier: { low: 'Low', medium: 'Medium', high: 'High' } as Record<Tier, string>,
@@ -139,6 +145,12 @@ const UI_HE: UiStrings = {
   finaleLabel: 'מה למדתם',
 
   settings: 'הגדרות',
+  sound: 'אפקטים קוליים',
+  labHum: 'זמזום המעבדה',
+  on: 'פועל',
+  off: 'כבוי',
+  labHumNote:
+    'הזמזום השקט של המעבדה והפעימות הקבועות של המשאבה במקרר המוזהב, כמו במעבדת מחשוב קוונטי אמיתית.',
   visualQuality: 'איכות תצוגה',
   motion: 'תנועה',
   tier: { low: 'נמוכה', medium: 'בינונית', high: 'גבוהה' },

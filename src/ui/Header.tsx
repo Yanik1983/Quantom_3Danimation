@@ -3,6 +3,39 @@ import { useLab } from '../state/lab';
 import { useSettings } from '../state/settings';
 import { SettingsMenu } from './SettingsMenu';
 
+/** Sound effects on / off (remembered). */
+function SoundButton() {
+  const t = useUi();
+  const on = useSettings((s) => s.sound);
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      aria-label={t.sound}
+      onClick={() => useSettings.getState().setSound(!on)}
+      className="glass flex size-10 items-center justify-center rounded-full text-slate-200 hover:text-white"
+    >
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="size-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+        {on ? (
+          <path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.5a8 8 0 0 1 0 11" />
+        ) : (
+          <path d="m16 9.5 5 5m0-5-5 5" />
+        )}
+      </svg>
+    </button>
+  );
+}
+
 export function Header() {
   const t = useUi();
   return (
@@ -25,6 +58,7 @@ export function Header() {
         >
           {t.switchTo.label}
         </button>
+        <SoundButton />
         <SettingsMenu />
       </div>
     </header>

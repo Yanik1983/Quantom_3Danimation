@@ -1,4 +1,6 @@
 import { useUi } from '../../content/i18n';
+import { sound } from '../../lib/sound';
+import { bitsToIndex } from '../../physics/qubits';
 import { Button, LiveDescription, Saw, Slider, Stepper } from '../../ui/controls';
 import { countResults, MANY, MAX_QUBITS, useQubits } from './store';
 
@@ -38,10 +40,25 @@ export default function QubitsControls() {
         format={(p) => t.mix01Value(pct(1 - p), pct(p))}
       />
       <div className="flex flex-wrap gap-2">
-        <Button variant="primary" onClick={s.measure}>
+        <Button
+          variant="primary"
+          onClick={() => {
+            s.measure();
+            const { result, count } = useQubits.getState();
+            if (result) sound.measure(bitsToIndex(result), 1 << count);
+          }}
+        >
           {t.measure}
         </Button>
-        <Button onClick={s.measureMany}>{t.measureTimes(MANY)}</Button>
+        <Button
+          onClick={() => {
+            s.measureMany();
+            const { batch, count } = useQubits.getState();
+            if (batch) sound.measureMany(batch, 1 << count);
+          }}
+        >
+          {t.measureTimes(MANY)}
+        </Button>
       </div>
       <Stepper
         label={t.qubitCount}

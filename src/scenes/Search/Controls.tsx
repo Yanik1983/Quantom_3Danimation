@@ -1,5 +1,6 @@
 import { useUi } from '../../content/i18n';
 import { Button, LiveDescription, Saw } from '../../ui/controls';
+import { liftCup, nextStep } from './actions';
 import { classicProgress, CUP_LABELS, useSearch } from './store';
 
 const pct = (a: number) => `${Math.round(a * a * 100)}%`;
@@ -17,7 +18,7 @@ export default function SearchControls() {
           {CUP_LABELS.map((cup, i) => (
             <Button
               key={cup}
-              onClick={() => s.lift(i)}
+              onClick={() => liftCup(i)}
               disabled={found || s.lifted[i]}
               label={t.liftCup(cup)}
             >
@@ -43,7 +44,7 @@ export default function SearchControls() {
     <>
       <div className="flex flex-wrap gap-2">
         {!done && (
-          <Button variant="primary" onClick={s.next}>
+          <Button variant="primary" onClick={nextStep}>
             {t.searchStep(s.stage + 1, t.searchSteps[s.stage])}
           </Button>
         )}

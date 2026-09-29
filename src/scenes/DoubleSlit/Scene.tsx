@@ -46,6 +46,7 @@ import {
   TEX_H,
   TEX_W,
 } from './geometry';
+import { sound } from '../../lib/sound';
 import { fireRate, IDLE_RATE, useDoubleSlit } from './store';
 
 const cfg = DEFAULT_DOUBLE_SLIT;
@@ -234,6 +235,8 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
   const clock = useRef({
     now: 0,
     lastSync: 0,
+    /** Detections already announced with a tick. */
+    heard: 0,
     firingSince: -1,
     clearToken: useDoubleSlit.getState().clearToken,
     ringFade: 0,
@@ -295,6 +298,13 @@ function Experiment({ data, active }: { data: DoubleSlitData; active: boolean })
     ringLower.color.setRGB(1, 0.24, 0.73).multiplyScalar(0.5 + 2.5 * engine.flashLower);
     if (upperRef.current) upperRef.current.visible = c.ringFade > 0.01;
     if (lowerRef.current) lowerRef.current.visible = c.ringFade > 0.01;
+
+    // A tick for each particle that lands while the step is open (rate-limited in the sound engine).
+    if (engine.detected < c.heard) c.heard = engine.detected;
+    if (engine.detected > c.heard) {
+      if (active) sound.tick();
+      c.heard = engine.detected;
+    }
 
     if (active && c.now - c.lastSync > 0.25 && st.detected !== engine.detected) {
       c.lastSync = c.now;

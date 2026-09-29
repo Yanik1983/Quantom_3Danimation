@@ -226,6 +226,47 @@ test('settings expose quality and motion controls', async ({ page }) => {
   await expect(dialog).toBeHidden();
 });
 
+test('sound: effects play after the first click, can be muted (remembered), lab hum is opt-in', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.addInitScript(() => {
+    const w = window as unknown as { __tones: number };
+    w.__tones = 0;
+    const proto = AudioContext.prototype;
+    const make = proto.createOscillator;
+    proto.createOscillator = function (this: AudioContext) {
+      w.__tones++;
+      return make.call(this);
+    };
+  });
+  const tones = () => page.evaluate(() => (window as unknown as { __tones: number }).__tones);
+  await page.goto('/#search');
+  const soundButton = page.getByRole('button', { name: 'Sound effects' });
+  await expect(soundButton).toHaveAttribute('aria-pressed', 'true');
+  for (const cup of ['00', '01', '10', '11']) {
+    const lift = card(page).getByRole('button', { name: `Lift cup ${cup}` });
+    if (await lift.isEnabled()) await lift.click();
+  }
+  expect(await tones()).toBeGreaterThan(0);
+
+  await soundButton.click();
+  await expect(soundButton).toHaveAttribute('aria-pressed', 'false');
+  const before = await tones();
+  await card(page).getByRole('button', { name: 'Now let the quantum computer try' }).click();
+  await card(page).getByRole('button', { name: 'Step 1: Spread' }).click();
+  expect(await tones()).toBe(before);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Sound effects' })).toHaveAttribute('aria-pressed', 'false');
+
+  await page.getByRole('button', { name: 'Settings' }).click();
+  const hum = page.getByRole('dialog', { name: 'Settings' }).getByRole('group', { name: 'Lab hum' });
+  await expect(hum.getByRole('radio', { name: 'Off' })).toBeChecked();
+  await hum.getByText('On', { exact: true }).click();
+  await expect(hum.getByRole('radio', { name: 'On' })).toBeChecked();
+  expect(errors).toEqual([]);
+});
+
 test('Hebrew: the switch translates the lab, lays it out right to left and is remembered', async ({
   page,
 }) => {

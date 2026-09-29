@@ -21,11 +21,17 @@ interface SettingsState {
   autoTier: Tier;
   motionPref: MotionPref;
   lang: Lang;
+  /** Sound effects (on by default; nothing plays before the first click, as browsers require). */
+  sound: boolean;
+  /** Background lab hum: the refrigerator's pump and the electronics (off by default). */
+  ambient: boolean;
   systemReducedMotion: boolean;
   setTierPref(t: TierPref): void;
   setAutoTier(t: Tier): void;
   setMotionPref(m: MotionPref): void;
   setLang(l: Lang): void;
+  setSound(v: boolean): void;
+  setAmbient(v: boolean): void;
   setSystemReducedMotion(v: boolean): void;
 }
 
@@ -51,18 +57,28 @@ export const useSettings = create<SettingsState>()(
       autoTier: 'medium',
       motionPref: 'system',
       lang: initialLang(),
+      sound: true,
+      ambient: false,
       systemReducedMotion:
         typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches,
       setTierPref: (tierPref) => set({ tierPref }),
       setAutoTier: (autoTier) => set({ autoTier }),
       setMotionPref: (motionPref) => set({ motionPref }),
       setLang: (lang) => set({ lang }),
+      setSound: (sound) => set({ sound }),
+      setAmbient: (ambient) => set({ ambient }),
       setSystemReducedMotion: (systemReducedMotion) => set({ systemReducedMotion }),
     }),
     {
       name: 'quantum-explainer-settings',
       storage: safeStorage,
-      partialize: (s) => ({ tierPref: s.tierPref, motionPref: s.motionPref, lang: s.lang }),
+      partialize: (s) => ({
+        tierPref: s.tierPref,
+        motionPref: s.motionPref,
+        lang: s.lang,
+        sound: s.sound,
+        ambient: s.ambient,
+      }),
       // An explicit ?lang= link overrides the saved choice.
       merge: (saved, current) => {
         const merged = { ...current, ...(saved as Partial<SettingsState>) };

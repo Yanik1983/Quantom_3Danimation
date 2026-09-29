@@ -119,6 +119,18 @@ export function SettingsMenu() {
             options={motionOptions}
             onChange={s.setMotionPref}
           />
+          <div className="space-y-1.5">
+            <RadioRow
+              legend={t.labHum}
+              value={s.ambient ? 'on' : 'off'}
+              options={[
+                { value: 'off', label: t.off },
+                { value: 'on', label: t.on },
+              ]}
+              onChange={(v) => s.setAmbient(v === 'on')}
+            />
+            <p className="text-xs leading-relaxed text-slate-400">{t.labHumNote}</p>
+          </div>
           <p className="text-xs leading-relaxed text-slate-400">{t.settingsNote}</p>
         </div>
       )}

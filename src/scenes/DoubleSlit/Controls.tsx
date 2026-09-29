@@ -1,4 +1,5 @@
 import { useUi } from '../../content/i18n';
+import { sound } from '../../lib/sound';
 import { Button, LiveDescription, Saw, Toggle } from '../../ui/controls';
 import { PATTERN_AT, useDoubleSlit } from './store';
 
@@ -22,7 +23,14 @@ export default function DoubleSlitControls() {
           {preparing ? t.preparing : s.firing ? t.stopFiring : t.fire}
         </Button>
       )}
-      <Toggle label={t.detectors} checked={s.measuring} onChange={s.setMeasuring} />
+      <Toggle
+        label={t.detectors}
+        checked={s.measuring}
+        onChange={(v) => {
+          sound.relay();
+          s.setMeasuring(v);
+        }}
+      />
       <Saw label={t.whatYouSaw} text={saw} />
       <LiveDescription>{t.landed(s.detected)}</LiveDescription>
     </>

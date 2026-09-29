@@ -15,6 +15,7 @@ import { useDisposable } from '../../hooks/useDisposable';
 import { selectReducedMotion, useSettings } from '../../state/settings';
 import { textTexture } from '../../three/textSprite';
 import type { SceneProps } from '../registry';
+import { liftCup } from './actions';
 import { amplitudesAt, CUP_LABELS, CUPS, useSearch, type Stage } from './store';
 
 const CUP_X = (i: number) => (i - (CUPS - 1) / 2) * 1.12;
@@ -143,7 +144,7 @@ export default function SearchScene({ active }: SceneProps) {
             onClick={(e) => {
               if (!active || useSearch.getState().mode !== 'classic') return;
               e.stopPropagation();
-              useSearch.getState().lift(i);
+              liftCup(i);
             }}
           >
             <mesh geometry={cup} material={cupMat} />

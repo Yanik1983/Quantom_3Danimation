@@ -16,6 +16,13 @@ After step 4, **Finish** opens the finale (`#finale`): the three tricks, what qu
 they will not do, and a common myth. From there (or by clicking the gold refrigerator, `#computer`) the camera glides
 to the real machine and a card explains it.
 
+**Sound.** Effects are synthesised with the Web Audio API (no audio files) and start after the first click, as
+browsers require: a Geiger-like tick per landing particle, a relay click for the detectors, a pop per measurement
+(low for 0, higher for larger results, so 100 measurements sound like the mix), one tone per detector for a linked
+pair (the same note on both sides, because the bits match), a thud or chime per cup, and a sound for each quantum
+step (chord, flip, beats that settle into one tone, chime). A speaker button in the header mutes them (remembered);
+the lab hum (the refrigerator's pulse-tube pump and a low electrical hum) is off by default, under Settings.
+
 ## Setup
 
 Requires Node 20+.

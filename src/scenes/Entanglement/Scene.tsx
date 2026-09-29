@@ -19,6 +19,7 @@ import {
 } from 'three';
 import { useDisposable } from '../../hooks/useDisposable';
 import { liveRng } from '../../lib/random';
+import { sound } from '../../lib/sound';
 import { selectReducedMotion, useSettings } from '../../state/settings';
 import { textTexture } from '../../three/textSprite';
 import type { SceneProps } from '../registry';
@@ -127,7 +128,10 @@ export default function EntanglementScene({ active }: SceneProps) {
     if (st.request.token !== c.token) {
       c.token = st.request.token;
       if (st.request.n === 0) engine.clear();
-      else engine.request(st.request.n, c.now);
+      else {
+        engine.request(st.request.n, c.now);
+        if (active) sound.whoosh();
+      }
     }
     if (!active && engine.pending === 0 && c.now >= c.nextIdle) {
       engine.request(1, c.now);
@@ -135,6 +139,8 @@ export default function EntanglementScene({ active }: SceneProps) {
     }
 
     const measured = engine.update(c.now);
+    // One tone per detector, left and right: the same bit always gives the same note.
+    if (active && measured > 0) sound.pair(engine.last.left, engine.last.right);
 
     // Particles and their links.
     const inst = particles.current;

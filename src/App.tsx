@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { initLabHistory } from './state/lab';
+import { initSound, sound } from './lib/sound';
+import { initLabHistory, useLab } from './state/lab';
 import { UI } from './content/i18n';
 import { selectReducedMotion, useLang, useSettings, useTierParams } from './state/settings';
 import { CanvasRoot } from './three/CanvasRoot';
@@ -34,8 +35,25 @@ function useEnvironmentSync() {
   }, [lang]);
 }
 
+/** Sound cues for moving around the lab: a whoosh as the camera glides, a fanfare for the finale. */
+function useSoundCues() {
+  useEffect(() => {
+    const stop = initSound();
+    const unsub = useLab.subscribe((s, prev) => {
+      if (s.current === prev.current && s.panel === prev.panel) return;
+      if (s.panel === 'finale') sound.fanfare();
+      else sound.whoosh(0.07);
+    });
+    return () => {
+      unsub();
+      stop();
+    };
+  }, []);
+}
+
 export function App() {
   useEnvironmentSync();
+  useSoundCues();
   useEffect(() => initLabHistory(), []);
 
   return (
